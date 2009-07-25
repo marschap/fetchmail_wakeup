@@ -1,3 +1,23 @@
+dovecot-fetchmail (1.1.0-0pm1) unstable; urgency=low
+
+  * adapt to dovecot 1.1 API
+  * lengthen time between 2 fetchmail awakenings
+  * register new command function using the orig flags
+  * adapt init & de-init function names to Dovecot 1.1
+  * rename wake_up_fetchmail.c to fetchmail_wakeup.c
+  * update compilation instructions
+  * add support for config options
+  * update copyright and other information
+  * add README file
+  * add Makefile and document its use in README
+  * initial version of Debian support files
+  * create debian/dirs
+  * create debian/docs
+  * convert debian/rules to use upstream Makefile
+  * debian/control: prepare for a release
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 25 Jul 2009 14:56:13 +0200
+
 dovecot-fetchmail (1.0.0-1) unreleased; urgency=low
 
   * Initial release.

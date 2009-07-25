@@ -22,17 +22,33 @@ cc -fPIC -shared -Wall \
  *   where the directory contains lib_fetchmail_wakeup.so. Add also in this
  *   same section the line:
  *        mail_plugins = fetchmail_wakeup
+ *   Additionally you may add config variables to the "plugin" section:
+ *        fetchmail_pidfile = /var/run/fetchmail/fetchmail.pid
+ *        fetchmail_interval = 300
+ *        #fetchmail_helper = /usr/local/bin/fetchmail_helper
  */
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <limits.h>
 #include "lib/lib.h"
 #include "lib/imem.h"
 #include "imap/commands.h"
+
+
+#define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
+#define FETCHMAIL_INTERVAL	60
+
+/*
+ * delay (in seconds) between two invocations of fetchmail
+ */
+static int fetchmail_interval = FETCHMAIL_INTERVAL;
+
 
 /*
  * Dovecot's real "IDLE" function
@@ -45,15 +61,11 @@ static struct command orig_cmd_idle;
 static struct command *orig_cmd_status_ptr;
 static struct command orig_cmd_status;
 
-/*
- * "$HOME/.fetchmail.pid"
- */
-static char fetchmail_pid_path[PATH_MAX];
 
 /*
- * Don't bother waking up fetchmail twice during 60 seconds
+ * Don't bother waking up fetchmail too often
  */
-static bool ratelimit(void)
+static bool ratelimit(long interval)
 {
 	static struct timeval last_one;
 	struct timeval now;
@@ -61,13 +73,10 @@ static bool ratelimit(void)
 
 	if (gettimeofday(&now, NULL))
 		return FALSE;
-/****
-TODO:
-make time between 2 fetchmail awakenings configurable
-****/
+
 	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000 +
 	                  now.tv_usec - last_one.tv_usec) / 1000;
-	if (millisec_delta > 60 * 1000) {
+	if (millisec_delta > interval * 1000) {
 		last_one = now;
 		return FALSE;
 	}
@@ -75,26 +84,69 @@ make time between 2 fetchmail awakenings configurable
 	return TRUE;
 }
 
+
 /*
- * Send a signal to fetchmail
+ * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
 static void fetchmail_wakeup(struct client_command_context *cmd)
 {
-	FILE *fetchmail_pid_file;
-	pid_t fetchmail_pid = 0;
+	/* read config variables depending on the session */
+	char *fetchmail_helper = getenv("FETCHMAIL_HELPER");
+	char *fetchmail_pidfile = getenv("FETCHMAIL_PIDFILE");
 
-	if (ratelimit())
+	if (ratelimit(fetchmail_interval))
 		return;
 
-	fetchmail_pid_file = fopen(fetchmail_pid_path, "r");
-	if (!fetchmail_pid_file)
-		return;
+	/* if a helper application is defined, then call it */
+	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
+		pid_t pid;
+		int status;
+		char *const *argv;
 
-	if (fscanf(fetchmail_pid_file, "%d", &fetchmail_pid) == 1)
-		if (fetchmail_pid > 1)
-			kill(fetchmail_pid, SIGUSR1);
-	fclose(fetchmail_pid_file);
+		switch (pid = fork()) {
+			case -1:	// fork failed
+				i_warning("fetchmail_wakeup: fork() failed");
+				return;
+			case 0:		// child
+				argv = (char *const *) t_strsplit_spaces(fetchmail_helper, " ");
+				if ((argv != NULL) && (*argv != NULL)) {
+					execv(argv[0], argv);
+					i_warning("fetchmail_wakeup: execv(%s) failed: %s",
+						argv[0], strerror(errno));
+					exit(1);
+				}
+				else {
+					i_warning("fetchmail_wakeup: illegal fetchmail_helper");
+					exit(1);
+				}
+			default:	// parent
+				waitpid(pid, &status, 0);
+		}
+	}
+	/* otherwise if a pid file name is given, signal fetchmail with that pid */
+	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
+		FILE *pidfile = fopen(fetchmail_pidfile, "r");
+		if (pidfile) {
+			pid_t pid = 0;
+
+			if ((fscanf(pidfile, "%d", &pid) == 1) && (pid > 1))
+				kill(pid, SIGUSR1);
+			else
+				i_warning("fetchmail_wakeup: error reading valid pid from %s",
+					fetchmail_pidfile);
+			fclose(pidfile);
+		}
+		else {
+			i_warning("fetchmail_wakeup: error opening %s",
+				 fetchmail_pidfile);
+		}
+	}
+	/* otherwise warn on missing configuration */
+	else {
+		i_warning("fetchmail_wakeup: neither fetchmail_pidfile nor fetchmail_helper given");
+	}
 }
+
 
 /*
  * Our "IDLE" wrapper
@@ -114,29 +166,39 @@ static bool new_cmd_status(struct client_command_context *cmd)
 	return orig_cmd_status.func(cmd);
 }
 
+
 /*
  * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
  * in place
  */
 void fetchmail_wakeup_plugin_init(void)
 {
-	char *home = getenv("HOME");
-	int res;
+	char *str;
 
-	if (!home)
-		return;
+	/* parse global config variable "fetchmail_interval" */
+	str = getenv("FETCHMAIL_INTERVAL");
+	if (str != NULL) {
+		if (is_numeric(str, '\0')) {
+			long value = strtol(str, NULL, 10);
 
-	res = snprintf(fetchmail_pid_path, sizeof(fetchmail_pid_path),
-		       "%s/.fetchmail.pid", home);
-	if (res < 0 || res >= sizeof(fetchmail_pid_path))
-		return;
+			if (value > 0)
+				fetchmail_interval = value;
+			else
+				i_warning("fetchmail_interval must be a positive number");
+		}
+		else {
+			i_warning("fetchmail_interval must be a positive number");
+		}
+	}
 
+	/* replace "IDLE" command handler by our own */
 	orig_cmd_idle_ptr = command_find("IDLE");
 	if (orig_cmd_idle_ptr)
 		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
 	command_unregister("IDLE");
 	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
 
+	/* replace "STATUS" command handler by our own */
 	orig_cmd_status_ptr = command_find("STATUS");
 	if (orig_cmd_status_ptr)
 		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
@@ -161,3 +223,5 @@ void fetchmail_wakeup_plugin_deinit(void)
 		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);
 	}
 }
+
+/* EOF */

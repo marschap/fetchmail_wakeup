@@ -11,7 +11,7 @@ cc -fPIC -shared -Wall \
    -I$DOVECOT_PATH/src/lib-storage \
    -I$DOVECOT_PATH/src/lib-mail \
    -I$DOVECOT_PATH/src/lib-imap \
-   -DHAVE_CONFIG_H wake_up_fetchmail.c -o lib_wake_up_fetchmail.so
+   -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup.so
  *
  * Tested with dovecot-1.0.3
  * Compile-tested with dovecot 1.1.13
@@ -19,9 +19,9 @@ cc -fPIC -shared -Wall \
  * To use:
  *   Add to dovecot.conf in section "protocol imap" the line:
  *        mail_plugin_dir = /path/to/directory
- *   where the directory contains lib_wake_up_fetchmail.so. Add also in this
+ *   where the directory contains lib_fetchmail_wakeup.so. Add also in this
  *   same section the line:
- *        mail_plugins = wake_up_fetchmail
+ *        mail_plugins = fetchmail_wakeup
  */
 
 #include <sys/types.h>
@@ -78,7 +78,7 @@ make time between 2 fetchmail awakenings configurable
 /*
  * Send a signal to fetchmail
  */
-static void wake_up_fetchmail(struct client_command_context *cmd)
+static void fetchmail_wakeup(struct client_command_context *cmd)
 {
 	FILE *fetchmail_pid_file;
 	pid_t fetchmail_pid = 0;
@@ -101,7 +101,7 @@ static void wake_up_fetchmail(struct client_command_context *cmd)
  */
 static bool new_cmd_idle(struct client_command_context *cmd)
 {
-	wake_up_fetchmail(cmd);
+	fetchmail_wakeup(cmd);
 	return orig_cmd_idle.func(cmd);
 }
 
@@ -110,7 +110,7 @@ static bool new_cmd_idle(struct client_command_context *cmd)
  */
 static bool new_cmd_status(struct client_command_context *cmd)
 {
-	wake_up_fetchmail(cmd);
+	fetchmail_wakeup(cmd);
 	return orig_cmd_status.func(cmd);
 }
 
@@ -118,7 +118,7 @@ static bool new_cmd_status(struct client_command_context *cmd)
  * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
  * in place
  */
-void wake_up_fetchmail_plugin_init(void)
+void fetchmail_wakeup_plugin_init(void)
 {
 	char *home = getenv("HOME");
 	int res;
@@ -149,7 +149,7 @@ void wake_up_fetchmail_plugin_init(void)
  * The command name is dupped, for its memory location to be accessible even
  * when the plugin is unloaded
  */
-void wake_up_fetchmail_plugin_deinit(void)
+void fetchmail_wakeup_plugin_deinit(void)
 {
 	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");

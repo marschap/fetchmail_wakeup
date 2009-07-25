@@ -6,22 +6,17 @@ build: build-stamp
 
 build-stamp:
 	dh_testdir
-	cc -fPIC -shared -Wall \
-	   -I$(DOVECOT_INC_PATH) \
-	   -I$(DOVECOT_INC_PATH)/src \
-	   -I$(DOVECOT_INC_PATH)/src/lib \
-	   -I$(DOVECOT_INC_PATH)/src/lib-storage \
-	   -I$(DOVECOT_INC_PATH)/src/lib-mail \
-	   -I$(DOVECOT_INC_PATH)/src/lib-imap \
-	   -DHAVE_CONFIG_H \
-	   $(CURDIR)/fetchmail_wakeup.c -o $(CURDIR)/lib90_fetchmail_wakeup_plugin.so
+	$(MAKE) DOVECOT_INC_PATH=/usr/include/dovecot \
+		PLUGIN_NAME=lib90_fetchmail_wakeup_plugin.so \
+		build
 	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
-	rm -f $(CURDIR)/lib90_fetchmail_wakeup.so
+	$(MAKE) PLUGIN_NAME=lib90_fetchmail_wakeup_plugin.so \
+		clean
 	dh_clean
 
 install: build
@@ -29,8 +24,9 @@ install: build
 	dh_testroot
 	dh_prep
 	dh_installdirs
-	cp $(CURDIR)/lib90_fetchmail_wakeup_plugin.so \
-	    $(CURDIR)/debian/dovecot-fetchmail/usr/lib/dovecot/modules/imap/
+	$(MAKE) DESTDIR=$(CURDIR)/debian/dovecot-fetchmail \
+		PLUGIN_NAME=lib90_fetchmail_wakeup_plugin.so \
+		install
 
 binary-indep: build install
 

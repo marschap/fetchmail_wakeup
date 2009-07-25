@@ -1,7 +1,15 @@
 /*
  * Fetchmail notification IMAP plugin for Dovecot
+ *
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
- * LGPLv2.1
+ * - original version named wake_up_fetchmail.c
+ *
+ * Copyright (C) 2009 Peter Marschall <peter@adpm.de>
+ * - adaptions to dovecot 1.1
+ * - rename to fetchmail_wakeup.c
+ * - configuration via dovecot.config
+ *
+ * License: LGPL v2.1
  *
  * To compile:
 cc -fPIC -shared -Wall \
@@ -13,8 +21,8 @@ cc -fPIC -shared -Wall \
    -I$DOVECOT_PATH/src/lib-imap \
    -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup_plugin.so
  *
- * Tested with dovecot-1.0.3
- * Compile-tested with dovecot 1.1.13
+ * Original version tested with dovecot-1.0.3
+ * Current version tested with dovecot 1.1.13, 1.1.16
  *
  * To use:
  *   Add to dovecot.conf in section "protocol imap" the line:

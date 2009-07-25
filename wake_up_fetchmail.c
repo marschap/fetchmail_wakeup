@@ -118,7 +118,7 @@ static bool new_cmd_status(struct client_command_context *cmd)
  * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
  * in place
  */
-void wake_up_fetchmail_init(void)
+void wake_up_fetchmail_plugin_init(void)
 {
 	char *home = getenv("HOME");
 	int res;
@@ -149,7 +149,7 @@ void wake_up_fetchmail_init(void)
  * The command name is dupped, for its memory location to be accessible even
  * when the plugin is unloaded
  */
-void wake_up_fetchmail_deinit(void)
+void wake_up_fetchmail_plugin_deinit(void)
 {
 	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");

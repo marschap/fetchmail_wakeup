@@ -16,7 +16,7 @@ daemon:
 - sending the USR1 signal to a PID stored in the first line of a PID file
 - executing a command
 
-As both, the PIF file and the command to execute, can be configured in
+As both, the PID file and the command to execute, can be configured in
 Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 

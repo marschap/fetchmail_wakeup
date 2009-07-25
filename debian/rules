@@ -1,0 +1,56 @@
+#!/usr/bin/make -f
+
+DOVECOT_INC_PATH = /usr/include/dovecot
+
+build: build-stamp
+
+build-stamp:
+	dh_testdir
+	cc -fPIC -shared -Wall \
+	   -I$(DOVECOT_INC_PATH) \
+	   -I$(DOVECOT_INC_PATH)/src \
+	   -I$(DOVECOT_INC_PATH)/src/lib \
+	   -I$(DOVECOT_INC_PATH)/src/lib-storage \
+	   -I$(DOVECOT_INC_PATH)/src/lib-mail \
+	   -I$(DOVECOT_INC_PATH)/src/lib-imap \
+	   -DHAVE_CONFIG_H \
+	   $(CURDIR)/fetchmail_wakeup.c -o $(CURDIR)/lib90_fetchmail_wakeup_plugin.so
+	touch $@
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	rm -f $(CURDIR)/lib90_fetchmail_wakeup.so
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	mkdir -p $(CURDIR)/debian/dovecot-fetchmail/usr/lib/dovecot/modules/imap
+	cp $(CURDIR)/lib90_fetchmail_wakeup_plugin.so \
+	    $(CURDIR)/debian/dovecot-fetchmail/usr/lib/dovecot/modules/imap/
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	dh_install
+	#dh_installman dovecot-fetchmail.7
+	dh_installchangelogs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

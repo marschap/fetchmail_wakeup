@@ -1,0 +1,5 @@
+dovecot-fetchmail (1.0.0-1) unreleased; urgency=low
+
+  * Initial release.
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 25 Jul 2009 14:36:50 +0200

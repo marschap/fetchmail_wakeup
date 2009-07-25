@@ -9,6 +9,7 @@ Homepage: http://guichaz.free.fr/misc/
 Package: dovecot-fetchmail
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd
+Recommends: fetchmail
 Description: a Dovecot plugin that wakes up fetchmail
  dovecot-fetchmail provides a plugin for the Dovecot IMAP server that
  awakens a sleeping fetchmail daemon whenever an IMAP client calls

@@ -135,13 +135,13 @@ void wake_up_fetchmail_init(void)
 	if (orig_cmd_idle_ptr)
 		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
 	command_unregister("IDLE");
-	command_register("IDLE", new_cmd_idle, 0);
+	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
 
 	orig_cmd_status_ptr = command_find("STATUS");
 	if (orig_cmd_status_ptr)
 		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
 	command_unregister("STATUS");
-	command_register("STATUS", new_cmd_status, 0);
+	command_register("STATUS", new_cmd_status, orig_cmd_status.flags);
 }
 
 /*

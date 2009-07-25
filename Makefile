@@ -1,17 +1,22 @@
 # Makefile for fetchmail_wakeup
 
-SOURCES = fetchmail_wakeup.c
 DOVECOT_INC_PATH = /usr/include/dovecot
 DOVECOT_IMAP_PLUGIN_PATH = /usr/lib/dovecot/modules/imap
+BINDIR = /usr/bin
+
+PLUGIN_SOURCES = fetchmail_wakeup.c
 PLUGIN_NAME = lib_fetchmail_wakeup_plugin.so
+
+HELPER_SOURCES = awaken-fetchmail.c
+HELPER_NAME = awaken-fetchmail
 
 .PHONY: all build install clean
 
 all: build
 
-build: ${PLUGIN_NAME}
+build: ${PLUGIN_NAME} ${HELPER_NAME}
 
-${PLUGIN_NAME}: ${SOURCES}
+${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	$(CC) -fPIC -shared -Wall \
 	    -I${DOVECOT_INC_PATH} \
 	    -I${DOVECOT_INC_PATH}/src \
@@ -22,10 +27,19 @@ ${PLUGIN_NAME}: ${SOURCES}
 	    -DHAVE_CONFIG_H \
 	    $< -o $@
 
-install: ${PLUGIN_NAME}
+${HELPER_NAME}: ${HELPER_SOURCES}
+
+install: install_plugin install_helper
+
+install_plugin: ${PLUGIN_NAME}
+	install -d ${DESTDIR}/${DOVECOT_IMAP_PLUGIN_PATH}
 	install $< ${DESTDIR}/${DOVECOT_IMAP_PLUGIN_PATH}
 
+install_helper: ${HELPER_NAME}
+	install -d ${DESTDIR}/${BINDIR}
+	install -m 4755 $< ${DESTDIR}/${BINDIR}
+
 clean:
-	$(RM) lib_fetchmail_wakeup_plugin.so
+	$(RM) ${PLUGIN_NAME} ${HELPER_NAME}
 
 # EOF

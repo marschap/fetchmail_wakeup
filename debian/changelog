@@ -1,3 +1,14 @@
+dovecot-fetchmail (1.1.1-0pm1) unstable; urgency=low
+
+  * add helper awaken-fetchmail
+  * update README
+  * debian/control: add fetchmail to Recommends
+  * add awaken-fetchmail to package; relicence debian/*
+  * debian/control: tighten dependencies
+  * add debian/postinst & debian/postrm
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 25 Jul 2009 15:56:30 +0200
+
 dovecot-fetchmail (1.1.0-0pm1) unstable; urgency=low
 
   * adapt to dovecot 1.1 API

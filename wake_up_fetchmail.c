@@ -7,12 +7,14 @@
 cc -fPIC -shared -Wall \
    -I$DOVECOT_PATH \
    -I$DOVECOT_PATH/src \
+   -I$DOVECOT_PATH/src/lib \
    -I$DOVECOT_PATH/src/lib-storage \
    -I$DOVECOT_PATH/src/lib-mail \
    -I$DOVECOT_PATH/src/lib-imap \
    -DHAVE_CONFIG_H wake_up_fetchmail.c -o lib_wake_up_fetchmail.so
  *
  * Tested with dovecot-1.0.3
+ * Compile-tested with dovecot 1.1.13
  *
  * To use:
  *   Add to dovecot.conf in section "protocol imap" the line:
@@ -35,12 +37,13 @@ cc -fPIC -shared -Wall \
 /*
  * Dovecot's real "IDLE" function
  */
-static command_func_t *orig_cmd_idle;
-
+static struct command *orig_cmd_idle_ptr;
+static struct command orig_cmd_idle;
 /*
  * Dovecot's real "STATUS" function
  */
-static command_func_t *orig_cmd_status;
+static struct command *orig_cmd_status_ptr;
+static struct command orig_cmd_status;
 
 /*
  * "$HOME/.fetchmail.pid"
@@ -96,7 +99,7 @@ static void wake_up_fetchmail(struct client_command_context *cmd)
 static bool new_cmd_idle(struct client_command_context *cmd)
 {
 	wake_up_fetchmail(cmd);
-	return orig_cmd_idle(cmd);
+	return orig_cmd_idle.func(cmd);
 }
 
 /*
@@ -105,7 +108,7 @@ static bool new_cmd_idle(struct client_command_context *cmd)
 static bool new_cmd_status(struct client_command_context *cmd)
 {
 	wake_up_fetchmail(cmd);
-	return orig_cmd_status(cmd);
+	return orig_cmd_status.func(cmd);
 }
 
 /*
@@ -125,13 +128,17 @@ void wake_up_fetchmail_init(void)
 	if (res < 0 || res >= sizeof(fetchmail_pid_path))
 		return;
 
-	orig_cmd_idle = command_find("IDLE");
+	orig_cmd_idle_ptr = command_find("IDLE");
+	if (orig_cmd_idle_ptr)
+		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
 	command_unregister("IDLE");
-	command_register("IDLE", new_cmd_idle);
+	command_register("IDLE", new_cmd_idle, 0);
 
-	orig_cmd_status = command_find("STATUS");
+	orig_cmd_status_ptr = command_find("STATUS");
+	if (orig_cmd_status_ptr)
+		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
 	command_unregister("STATUS");
-	command_register("STATUS", new_cmd_status);
+	command_register("STATUS", new_cmd_status, 0);
 }
 
 /*
@@ -141,13 +148,13 @@ void wake_up_fetchmail_init(void)
  */
 void wake_up_fetchmail_deinit(void)
 {
-	if (orig_cmd_idle) {
+	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");
-		command_register(i_strdup("IDLE"), orig_cmd_idle);
+		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
 	}
 
-	if (orig_cmd_status) {
+	if (orig_cmd_status_ptr) {
 		command_unregister("STATUS");
-		command_register(i_strdup("STATUS"), orig_cmd_status);
+		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);
 	}
 }

@@ -51,20 +51,23 @@ static struct command orig_cmd_status;
 static char fetchmail_pid_path[PATH_MAX];
 
 /*
- * Don't bother waking up fetchmail twice during 2 seconds
+ * Don't bother waking up fetchmail twice during 60 seconds
  */
 static bool ratelimit(void)
 {
 	static struct timeval last_one;
 	struct timeval now;
-	long usecs;
+	long millisec_delta;
 
 	if (gettimeofday(&now, NULL))
 		return FALSE;
-
-	usecs = (now.tv_sec - last_one.tv_sec) * 1000000 +
-	    now.tv_usec - last_one.tv_usec;
-	if (now.tv_sec - last_one.tv_sec > 2 || usecs >= 2000000) {
+/****
+TODO:
+make time between 2 fetchmail awakenings configurable
+****/
+	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000 +
+	                  now.tv_usec - last_one.tv_usec) / 1000;
+	if (millisec_delta > 60 * 1000) {
 		last_one = now;
 		return FALSE;
 	}

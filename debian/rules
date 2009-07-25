@@ -29,7 +29,6 @@ install: build
 	dh_testroot
 	dh_prep
 	dh_installdirs
-	mkdir -p $(CURDIR)/debian/dovecot-fetchmail/usr/lib/dovecot/modules/imap
 	cp $(CURDIR)/lib90_fetchmail_wakeup_plugin.so \
 	    $(CURDIR)/debian/dovecot-fetchmail/usr/lib/dovecot/modules/imap/
 

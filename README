@@ -60,9 +60,18 @@ Installation of the plugin is essentially a 2-step process:
    where DOVECOT_INC_PATH is the top-level directory containing the development
    header files of the version of Dovecot you want to compile the module for.
 
+   Or simply write:
+
+      make build
+
+
 2) Then copy the resulting file lib_fetchmail_wakeup_plugin.so
    to the directoy containing the imap plugins of Dovecot.
    Usually this is /usr/lib/dovecot/modules/imap or similar.
+
+   This can be achieved using:
+
+      make install
 
 That's it.
 

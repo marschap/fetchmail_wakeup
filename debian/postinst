@@ -1,0 +1,12 @@
+#!/bin/sh
+# postinst script for dovecot-fetchmail
+
+set -e
+
+if [ "$1" = "configure" ]; then
+	if ! dpkg-statoverride --list /usr/bin/awaken-fetchmail > /dev/null 2>&1; then
+		dpkg-statoverride --update --add fetchmail root 04755 /usr/bin/awaken-fetchmail
+	fi
+fi
+
+exit 0

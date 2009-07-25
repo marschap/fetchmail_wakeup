@@ -1,0 +1,12 @@
+#!/bin/sh
+# postrm script for dovecot-fetchmail
+
+set -e
+
+if [ "$1" = "purge" ]; then
+	if dpkg-statoverride --list /usr/bin/awaken-fetchmail > /dev/null 2>&1; then
+		dpkg-statoverride --remove /usr/bin/awaken-fetchmail > /dev/null 2>&1 || true
+	fi
+fi
+
+exit 0

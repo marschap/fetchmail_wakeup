@@ -11,7 +11,7 @@ cc -fPIC -shared -Wall \
    -I$DOVECOT_PATH/src/lib-storage \
    -I$DOVECOT_PATH/src/lib-mail \
    -I$DOVECOT_PATH/src/lib-imap \
-   -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup.so
+   -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup_plugin.so
  *
  * Tested with dovecot-1.0.3
  * Compile-tested with dovecot 1.1.13

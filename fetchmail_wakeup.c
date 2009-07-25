@@ -11,29 +11,6 @@
  *
  * License: LGPL v2.1
  *
- * To compile:
-cc -fPIC -shared -Wall \
-   -I$DOVECOT_PATH \
-   -I$DOVECOT_PATH/src \
-   -I$DOVECOT_PATH/src/lib \
-   -I$DOVECOT_PATH/src/lib-storage \
-   -I$DOVECOT_PATH/src/lib-mail \
-   -I$DOVECOT_PATH/src/lib-imap \
-   -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup_plugin.so
- *
- * Original version tested with dovecot-1.0.3
- * Current version tested with dovecot 1.1.13, 1.1.16
- *
- * To use:
- *   Add to dovecot.conf in section "protocol imap" the line:
- *        mail_plugin_dir = /path/to/directory
- *   where the directory contains lib_fetchmail_wakeup.so. Add also in this
- *   same section the line:
- *        mail_plugins = fetchmail_wakeup
- *   Additionally you may add config variables to the "plugin" section:
- *        fetchmail_pidfile = /var/run/fetchmail/fetchmail.pid
- *        fetchmail_interval = 300
- *        #fetchmail_helper = /usr/local/bin/fetchmail_helper
  */
 
 #include <sys/types.h>

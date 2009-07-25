@@ -1,0 +1,141 @@
+Fetchmail notification IMAP plugin for Dovecot
+==============================================
+
+Description
+-----------
+fetchmail_wakeup is a plugin for Dovecot 1.1.
+
+It intercepts the IMAPv4 commands to fetch mail from the server:
+- STATUS: client polls for new mail
+- IDLE:   client tells server to push new mail
+and tries to wake up a running fetchmail daemon before performing
+the command.
+
+fetchmail_wakeup supports two different ways of waking up a fetchmail
+daemon:
+- sending the USR1 signal to a PID stored in the first line of a PID file
+- executing a command
+
+As both, the PIF file and the command to execute, can be configured in
+Dovecot's configuration file dovecot.conf, you are not restricted to 
+fetchmail, but can execute or send a signal to any command you want.
+
+Although some kind of runtime-configurable rate-limiting is supported,
+this module is not considered suitable for large installations.
+But those installations do not rely on fetchmail for pulling in
+new mail from a provider anyway.
+
+
+Copyrights
+----------
+Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
+- original version named wake_up_fetchmail.c
+
+Copyright (C) 2009 Peter Marschall <peter@adpm.de>
+- adaptions to dovecot 1.1
+- rename to fetchmail_wakeup.c
+- configuration via dovecot.config
+
+
+License
+-------
+LGPL v2.1
+
+
+Installation
+------------
+Installation of the plugin is essentially a 2-step process:
+
+1) Compile the module with the following command line
+
+      cc -fPIC -shared -Wall \
+         -I${DOVECOT_INC_PATH} \
+         -I${DOVECOT_INC_PATH}/src \
+         -I${DOVECOT_INC_PATH}/src/lib \
+         -I${DOVECOT_INC_PATH}/src/lib-storage \
+         -I${DOVECOT_INC_PATH}/src/lib-mail \
+         -I${DOVECOT_INC_PATH}/src/lib-imap \
+         -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup_plugin.so
+
+   where DOVECOT_INC_PATH is the top-level directory containing the development
+   header files of the version of Dovecot you want to compile the module for.
+
+2) Then copy the resulting file lib_fetchmail_wakeup_plugin.so
+   to the directoy containing the imap plugins of Dovecot.
+   Usually this is /usr/lib/dovecot/modules/imap or similar.
+
+That's it.
+
+
+Configuration
+-------------
+
+After the plugin library is installed and ready to be used, Dovecot's
+configuration file, usually /etc/dovecot/dovecot.conf, needs to be adapted
+to make Dovecot use the plugin.
+
+This again is a 2-step process:
+
+1) Make Dovecot aware of the plugin.
+   This happens in dovecot.conf's "protocol imap" section and comprises
+   - setting the mail_plugin_dir variable (if not already set)
+   - extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
+
+      protocol imap {
+        # ...
+      
+        mail_plugins = fetchmail_wakeup
+        mail_plugin_dir = /usr/lib/dovecot/modules/imap
+      
+        # ...
+      }
+
+2) Setting the plugin's configuration options.
+   This is done in dovecot.conf's plugin "section".
+
+   fetchmail_wakeup supports three configuration options:
+   - fetchmail_interval = NUMBER
+     Set minimal interval between two fetchmail invocations to NUMBER seconds.
+     If it is not given, the interval defaults to 60.
+   - fetchmail_helper = COMMAND
+     Execute COMMAND to either start fetchmail (or any other mail fetching tool),
+     or to awaken a running fetchmail daemon (or any other mail fetching tool).
+   - fetchmail_pidfile = NAME
+     Use NAME as the file to read the PID of a running fetchmail instance from,
+     and awaken this instance by sending it the SIGUSR1 signal.
+
+   If fetchmail_helper is given, it takes precedence and fetchmail_pidfile
+   is ignored.
+
+      plugin {
+        # ...
+      
+        ## fetchmail_wakeup plugin: awaken fetchmail on STATUS & IDLE commands
+
+        # minimal interval (in seconds) between two awakenings od fetchmail
+        # (this setting is optional and defaults to 60)
+        fetchmail_interval = 60
+
+        # a helper program to notify fetchmail accordingly
+        fetchmail_helper = /usr/local/bin/awaken-fetchmail
+
+        # pid file of a running fetchmail instance
+        fetchmail_pidfile = %h/fetchmail.pid
+
+        # ...
+      }
+
+   As the exmaple above shows, it is even possible to use Dovecot's variables
+   in the configuration options, and thus awaken fetchmail daemons of multiple
+   users with this configuration.
+   
+      
+Now restart your dovecot daemon and enjoy the comfort of being able to control
+fetchmail by simply fetching mail from the server in your IMAP client.
+
+
+Tests
+-----
+Original version tested with dovecot-1.0.3
+Current version tested with dovecot 1.1.13, 1.1.16
+

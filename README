@@ -148,3 +148,14 @@ Tests
 Original version tested with dovecot-1.0.3
 Current version tested with dovecot 1.1.13, 1.1.16
 
+
+GIT archive structure
+---------------------
+dovecot-fetchail's git archive consists of 3 branches:
+* original: contains the original import of Guillaume's file
+	wake_up_fetchmail.c
+* master: contains the main upstream development branch
+	Note: until upstream/1.1.1 this branch was called upstream
+* debian: contains the extensions to create a Debian package
+	using git-buildpackage
+

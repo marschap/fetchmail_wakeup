@@ -17,7 +17,7 @@ daemon:
 - executing a command
 
 As both, the PIF file and the command to execute, can be configured in
-Dovecot's configuration file dovecot.conf, you are not restricted to 
+Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 
 Although some kind of runtime-configurable rate-limiting is supported,
@@ -92,10 +92,10 @@ This again is a 2-step process:
 
       protocol imap {
         # ...
-      
+
         mail_plugins = fetchmail_wakeup
         mail_plugin_dir = /usr/lib/dovecot/modules/imap
-      
+
         # ...
       }
 
@@ -118,15 +118,15 @@ This again is a 2-step process:
 
       plugin {
         # ...
-      
+
         ## fetchmail_wakeup plugin: awaken fetchmail on STATUS & IDLE commands
 
-        # minimal interval (in seconds) between two awakenings od fetchmail
+        # minimal interval (in seconds) between two awakenings of fetchmail
         # (this setting is optional and defaults to 60)
         fetchmail_interval = 60
 
         # a helper program to notify fetchmail accordingly
-        fetchmail_helper = /usr/local/bin/awaken-fetchmail
+        fetchmail_helper = /usr/bin/awaken-fetchmail
 
         # pid file of a running fetchmail instance
         fetchmail_pidfile = %h/fetchmail.pid
@@ -137,8 +137,8 @@ This again is a 2-step process:
    As the exmaple above shows, it is even possible to use Dovecot's variables
    in the configuration options, and thus awaken fetchmail daemons of multiple
    users with this configuration.
-   
-      
+
+
 Now restart your dovecot daemon and enjoy the comfort of being able to control
 fetchmail by simply fetching mail from the server in your IMAP client.
 

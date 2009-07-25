@@ -1,7 +1,5 @@
 #!/usr/bin/make -f
 
-DOVECOT_INC_PATH = /usr/include/dovecot
-
 build: build-stamp
 
 build-stamp:

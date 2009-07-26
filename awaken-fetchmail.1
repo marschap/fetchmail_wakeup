@@ -1,0 +1,50 @@
+.\" manual page for awaken-fetchmail
+.\" Copyright (C) 2009 Peter Marschall <peter@adpm.de>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License along
+.\" with this program; if not, write to the Free Software Foundation, Inc.,
+.\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+.\"
+.TH AWAKEN-FETCHMAIL 1 "26 July 2009" "" "Dovecot Plugins"
+
+.SH NAME
+awaken-fetchmail \- setuid helper to trigger fetchmail wakeups
+
+.SH SYNOPSIS
+.B awaken-fetchmail
+
+.SH DESCRIPTION
+awaken-fetchmail is a helper program for the Dovecot plugin \fIfetchmail_wakeup\fP.
+.PP
+Its purpose is to send the \fBSIGUSR1\fP signal to a system-wide fetchmail
+process.
+The ID of this process is read from the first line of the PID file
+\fI/var/run/fetchmail/fetchmail.pid\fP.
+.PP
+In order to be able to fulfil its purpose, awaken-fetchmail is setuid
+to the user the system-wide fetchmail daemon is running with.
+
+.SH CONFIGURATION
+For security reasons, awaken-fetchmail can be configured at compile time only.
+
+.SH ERRORS
+After having successfully sent the signal to fetchmail, awaken-fetchmail
+returns \fBEXIT_SUCCESS\fP, on error it returns \fBEXIT_FAILURE\fP.
+
+.SH FILES
+.I /var/run/fetchmail/fetchmail.pid  
+
+.SH SEE ALSO
+.BR fetchmail_wakeup (7),
+.BR dovecot (1),
+.BR fetchmail (1)

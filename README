@@ -16,7 +16,7 @@ daemon:
 - sending the USR1 signal to a PID stored in the first line of a PID file
 - executing a command
 
-As both, the PIF file and the command to execute, can be configured in
+As both, the PID file and the command to execute, can be configured in
 Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 
@@ -147,4 +147,15 @@ Tests
 -----
 Original version tested with dovecot-1.0.3
 Current version tested with dovecot 1.1.13, 1.1.16
+
+
+GIT archive structure
+---------------------
+dovecot-fetchail's git archive consists of 3 branches:
+* original: contains the original import of Guillaume's file
+	wake_up_fetchmail.c
+* master: contains the main upstream development branch
+	Note: until upstream/1.1.1 this branch was called upstream
+* debian: contains the extensions to create a Debian package
+	using git-buildpackage
 

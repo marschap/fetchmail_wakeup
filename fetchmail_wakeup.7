@@ -1,0 +1,145 @@
+.\" manual page for fetchmail_wakeup
+.\" Copyright (C) 2009 Peter Marschall <peter@adpm.de>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License along
+.\" with this program; if not, write to the Free Software Foundation, Inc.,
+.\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+.\"
+.TH FETCHMAIL_WAKEUP 7 "25 July 2009" "" "Dovecot Plugins"
+
+.SH NAME
+fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
+
+.SH DESCRIPTION
+fetchmail_wakeup is a plugin for Dovecot 1.1.
+.PP
+It intercepts the following IMAPv4 commands to fetch mail from the server:
+.TP
+.B STATUS
+client polling for new mail
+.TP
+.B IDLE
+client telling the server to push new mail
+.PP
+and tries to wake up a running fetchmail daemon before performing
+the command.
+.PP
+fetchmail_wakeup supports two different ways of waking up a fetchmail
+daemon:
+.TP 3
+*
+sending the SIGUSR1 signal to a PID stored in the first line of a PID file
+.TP
+*
+executing a command
+.PP
+As both, the PID file and the command to execute, can be configured in
+Dovecot's configuration file \fIdovecot.conf\fP, you are not restricted to
+fetchmail, but can execute or send the SIGUSR1 signal to any command you want.
+
+
+.SH CONFIGURATION
+After the plugin library is installed and ready to be used, Dovecot's
+configuration file, usually \fI/etc/dovecot/dovecot.conf\fP, needs to be adapted
+to make Dovecot use the plugin:
+
+First, make Dovecot aware of the plugin.
+This happens in dovecot.conf's \fBprotocol imap\fP section and comprises
+.TP 3
+*
+setting the mail_plugin_dir variable (if not already set)
+.TP
+*
+extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
+.PP
+.nf
+\fBprotocol imap\fP {
+    ...
+
+    \fBmail_plugins\fP = \fBfetchmail_wakeup\fP
+    \fBmail_plugin_dir\fP = /usr/lib/dovecot/modules/imap
+
+    ...
+}
+.fi
+.PP
+Then, set the plugin's configuration options.
+This is done in dovecot.conf's \fBplugin\fP section.
+
+fetchmail_wakeup supports three configuration options:
+.TP
+.BR fetchmail_interval = \fINUMBER\fP
+Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
+If it is not given, the interval defaults to \fB60\fP.
+.TP
+.BR fetchmail_helper = \fICOMMAND\fP
+Execute \fICOMMAND\fP to either start fetchmail (or any other mail fetching tool),
+or to awaken a running fetchmail daemon (or any other mail fetching tool).
+.TP
+.BR fetchmail_pidfile = \fINAME\fP
+Use \fINAME\fP as the file to read the process ID (PID) of a running fetchmail
+instance from, and awaken this instance by sending it the \fBSIGUSR1\fP signal.
+.PP
+If fetchmail_helper is given, it takes precedence and fetchmail_pidfile
+is ignored.
+.PP
+.nf
+\fBplugin\fP {
+    ...
+
+    ## fetchmail_wakeup plugin: awaken fetchmail on STATUS & IDLE commands
+
+    # minimal interval (in seconds) between two awakenings of fetchmail
+    # (this setting is optional and defaults to 60)
+    \fBfetchmail_interval\fP = 60
+
+    # a helper program to notify fetchmail accordingly
+    \fBfetchmail_helper\fP = /usr/bin/awaken-fetchmail
+
+    # pid file of a running fetchmail instance
+    \fBfetchmail_pidfile\fP = %h/fetchmail.pid
+
+    ...
+}
+.fi
+.PP
+As the example above shows, it is even possible to use Dovecot's variables
+in the configuration options, and thus awaken the private fetchmail daemons
+of multiple users with this configuration.
+.PP
+Now restart your dovecot daemon and enjoy the comfort of being able to control
+fetchmail by simply fetching mail from the server in your IMAP client.
+
+
+.SH ERRORS
+fetchmail_wakeup reports its errors via Dovecot's regular logging mechanisms.
+
+.SH FILES
+.I dovecot.conf
+.br
+.I lib_fetchmail_wakeup_plugin.so
+
+
+.SH NOTES
+Although some kind of runtime-configurable rate-limiting is supported
+using \fIfetchmail_interval\fP,
+this module is not considered suitable for large scale installations.
+But those installations do not rely on fetchmail for pulling in
+new mail from mail providers anyway.
+
+
+.SH SEE ALSO
+.BR dovecot (1),
+.BR fetchmail (1)
+
+

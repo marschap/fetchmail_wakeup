@@ -1,3 +1,17 @@
+dovecot-fetchmail (1.1.2-0pm1) unstable; urgency=low
+
+  * new upstream release
+    - README: document how the git branches are used
+    - debian/gbp.conf: follow upstream branch name change
+    - add fetchmail_wakeup.7 manual page
+    - README: fix a few typos
+    - fetchmail_wakeup.7: add license; slight changes
+    - add awaken-fetchmail.1 manual page
+    - Makefile: add man pages to installation; comment
+  * include manual pages into package; add debian/manpages
+
+ -- Peter Marschall <peter@adpm.de>  Sun, 26 Jul 2009 21:32:20 +0200
+
 dovecot-fetchmail (1.1.1-0pm1) unstable; urgency=low
 
   * add helper awaken-fetchmail

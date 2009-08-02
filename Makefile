@@ -2,12 +2,21 @@
 
 #### configuration begin ####
 
-# directories #
+# Dovecot's header directory
 DOVECOT_INC_PATH = /usr/include/dovecot
+# Dovecot's IMAP plugin path
 DOVECOT_IMAP_PLUGIN_PATH = /usr/lib/dovecot/modules/imap
+# Dovecot's config directory (where dovecot.conf resides)
+DOVECOT_ETCDIR = /etc/dovecot
+# directory for binaries
 BINDIR = /usr/bin
+# directories for man pages sections 1 & 7
 MAN1DIR = /usr/share/man/man1
 MAN7DIR = /usr/share/man/man7
+# fetchmail's PID file (used in awaken-fetchmail)
+FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
+
+## usually no need to configure anything below this line ##
 
 # plugin source & target name #
 PLUGIN_SOURCES = fetchmail_wakeup.c
@@ -29,7 +38,7 @@ MAN7PAGES = fetchmail_wakeup.7
 
 all: build
 
-build: ${PLUGIN_NAME} ${HELPER_NAME}
+build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	$(CC) -fPIC -shared -Wall \
@@ -43,6 +52,26 @@ ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	    $< -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
+
+%.1 : %.1.in
+	sed -e 's:DOVECOT_IMAP_PLUGIN_PATH:${DOVECOT_IMAP_PLUGIN_PATH}:g' \
+	    -e  's:BINDIR:${BINDIR}:g' \
+	    -e  's:MAN1DIR:${MAN1DIR}:g' \
+	    -e  's:MAN7DIR:${MAN7DIR}:g' \
+	    -e  's:DOVECOT_ETCDIR:${DOVECOT_ETCDIR}:g' \
+	    -e  's:FETCHMAIL_PIDFILE:${FETCHMAIL_PIDFILE}:g' \
+	    -e  's:PLUGIN_NAME:${PLUGIN_NAME}:g' \
+	$< > $@
+
+%.7 : %.7.in
+	sed -e 's:DOVECOT_IMAP_PLUGIN_PATH:${DOVECOT_IMAP_PLUGIN_PATH}:g' \
+	    -e  's:BINDIR:${BINDIR}:g' \
+	    -e  's:MAN1DIR:${MAN1DIR}:g' \
+	    -e  's:MAN7DIR:${MAN7DIR}:g' \
+	    -e  's:DOVECOT_ETCDIR:${DOVECOT_ETCDIR}:g' \
+	    -e  's:FETCHMAIL_PIDFILE:${FETCHMAIL_PIDFILE}:g' \
+	    -e  's:PLUGIN_NAME:${PLUGIN_NAME}:g' \
+	$< > $@
 
 install: install_plugin install_helper install_man
 
@@ -65,6 +94,6 @@ install_man7: ${MAN7PAGES}
 	install $? ${DESTDIR}/${MAN7DIR}
 
 clean:
-	$(RM) ${PLUGIN_NAME} ${HELPER_NAME}
+	$(RM) ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 # EOF

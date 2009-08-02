@@ -50,7 +50,7 @@ fetchmail, but can execute or send the SIGUSR1 signal to any command you want.
 
 .SH CONFIGURATION
 After the plugin library is installed and ready to be used, Dovecot's
-configuration file, usually \fI/etc/dovecot/dovecot.conf\fP, needs to be adapted
+configuration file, \fIDOVECOT_ETCDIR/dovecot.conf\fP, needs to be adapted
 to make Dovecot use the plugin:
 
 First, make Dovecot aware of the plugin.
@@ -67,7 +67,7 @@ extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
     ...
 
     \fBmail_plugins\fP = \fBfetchmail_wakeup\fP
-    \fBmail_plugin_dir\fP = /usr/lib/dovecot/modules/imap
+    \fBmail_plugin_dir\fP = DOVECOT_IMAP_PLUGIN_PATH
 
     ...
 }
@@ -104,7 +104,7 @@ is ignored.
     \fBfetchmail_interval\fP = 60
 
     # a helper program to notify fetchmail accordingly
-    \fBfetchmail_helper\fP = /usr/bin/awaken-fetchmail
+    \fBfetchmail_helper\fP = BINDIR/awaken-fetchmail
 
     # pid file of a running fetchmail instance
     \fBfetchmail_pidfile\fP = %h/fetchmail.pid
@@ -125,9 +125,9 @@ fetchmail by simply fetching mail from the server in your IMAP client.
 fetchmail_wakeup reports its errors via Dovecot's regular logging mechanisms.
 
 .SH FILES
-.I dovecot.conf
+.I DOVECOT_ETCDIR/dovecot.conf
 .br
-.I lib_fetchmail_wakeup_plugin.so
+.I DOVECOT_IMAP_PLUGIN_PATH/PLUGIN_NAME
 
 
 .SH NOTES
@@ -141,5 +141,4 @@ new mail from mail providers anyway.
 .SH SEE ALSO
 .BR dovecot (1),
 .BR fetchmail (1)
-
 

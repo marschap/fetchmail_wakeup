@@ -41,17 +41,22 @@ all: build
 build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
-	$(CC) -fPIC -shared -Wall \
-	    -I${DOVECOT_INC_PATH} \
-	    -I${DOVECOT_INC_PATH}/src \
-	    -I${DOVECOT_INC_PATH}/src/lib \
-	    -I${DOVECOT_INC_PATH}/src/lib-storage \
-	    -I${DOVECOT_INC_PATH}/src/lib-mail \
-	    -I${DOVECOT_INC_PATH}/src/lib-imap \
-	    -DHAVE_CONFIG_H \
-	    $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	      -fPIC -shared -Wall \
+	      -I${DOVECOT_INC_PATH} \
+	      -I${DOVECOT_INC_PATH}/src \
+	      -I${DOVECOT_INC_PATH}/src/lib \
+	      -I${DOVECOT_INC_PATH}/src/lib-storage \
+	      -I${DOVECOT_INC_PATH}/src/lib-mail \
+	      -I${DOVECOT_INC_PATH}/src/lib-imap \
+	      -DHAVE_CONFIG_H \
+	      $< -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	      -Wall \
+	      -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"' \
+	      $< -o $@
 
 %.1 : %.1.in
 	sed -e 's:DOVECOT_IMAP_PLUGIN_PATH:${DOVECOT_IMAP_PLUGIN_PATH}:g' \

@@ -25,7 +25,9 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
+#if !defined(FETCHMAIL_PIDFILE)
+#  define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
+#endif
 
 int main(int argc, char *argv[])
 {

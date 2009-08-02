@@ -29,7 +29,7 @@ awaken-fetchmail is a helper program for the Dovecot plugin \fIfetchmail_wakeup\
 Its purpose is to send the \fBSIGUSR1\fP signal to a system-wide fetchmail
 process.
 The ID of this process is read from the first line of the PID file
-\fI/var/run/fetchmail/fetchmail.pid\fP.
+\fIFETCHMAIL_PIDFILE\fP.
 .PP
 In order to be able to fulfil its purpose, awaken-fetchmail is setuid
 to the user the system-wide fetchmail daemon is running with.
@@ -42,7 +42,7 @@ After having successfully sent the signal to fetchmail, awaken-fetchmail
 returns \fBEXIT_SUCCESS\fP, on error it returns \fBEXIT_FAILURE\fP.
 
 .SH FILES
-.I /var/run/fetchmail/fetchmail.pid  
+.I FETCHMAIL_PIDFILE
 
 .SH SEE ALSO
 .BR fetchmail_wakeup (7),

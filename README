@@ -46,29 +46,23 @@ Installation
 ------------
 Installation of the plugin is essentially a 2-step process:
 
-1) Compile the module with the following command line
+1) Configure the paths in Makefile according to your installation
+   The relevant variables are:
 
-      cc -fPIC -shared -Wall \
-         -I${DOVECOT_INC_PATH} \
-         -I${DOVECOT_INC_PATH}/src \
-         -I${DOVECOT_INC_PATH}/src/lib \
-         -I${DOVECOT_INC_PATH}/src/lib-storage \
-         -I${DOVECOT_INC_PATH}/src/lib-mail \
-         -I${DOVECOT_INC_PATH}/src/lib-imap \
-         -DHAVE_CONFIG_H fetchmail_wakeup.c -o lib_fetchmail_wakeup_plugin.so
+   * DOVECOT_INC_PATH - directory containing dovecot header files
+   * DOVECOT_IMAP_PLUGIN_PATH - directory where the plugin shall be installed
+   * BINDIR - directory where the helper program shall be installed
+   * MAN1DIR - directory where the helper manunal page shall be installed
+   * MAN7DIR - directory where the plugin's manual page shall be installed
+   * DOVECOT_ETCDIR - directory where dovecot.conf resides
+   * FETCHMAIL_PIDFILE - fully qualified path of fetchmail's PID file
 
-   where DOVECOT_INC_PATH is the top-level directory containing the development
-   header files of the version of Dovecot you want to compile the module for.
-
-   Or simply write:
+2) Compile the module with the following command line
 
       make build
 
-
-2) Then copy the resulting file lib_fetchmail_wakeup_plugin.so
+3) Then copy the resulting file lib_fetchmail_wakeup_plugin.so
    to the directoy containing the imap plugins of Dovecot.
-   Usually this is /usr/lib/dovecot/modules/imap or similar.
-
    This can be achieved using:
 
       make install
@@ -78,12 +72,11 @@ That's it.
 
 Configuration
 -------------
-
 After the plugin library is installed and ready to be used, Dovecot's
 configuration file, usually /etc/dovecot/dovecot.conf, needs to be adapted
 to make Dovecot use the plugin.
 
-This again is a 2-step process:
+This is a 2-step process:
 
 1) Make Dovecot aware of the plugin.
    This happens in dovecot.conf's "protocol imap" section and comprises

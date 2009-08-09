@@ -44,7 +44,7 @@ LGPL v2.1
 
 Installation
 ------------
-Installation of the plugin is essentially a 2-step process:
+Installation of the plugin is essentially a 3-step process:
 
 1) Configure the paths in Makefile according to your installation
    The relevant variables are:

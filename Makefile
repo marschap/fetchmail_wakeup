@@ -2,6 +2,11 @@
 
 #### configuration begin ####
 
+# package name and latest version
+PACKAGE_NAME = dovecot-fetchmail
+#PACKAGE_VERSION = $(shell git tag | grep upstream | sort -r | head -n 1 | cut -d / -f 2)
+PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(shell git tag)))))
+
 # Dovecot's header directory
 DOVECOT_INC_PATH = /usr/include/dovecot
 # Dovecot's IMAP plugin path
@@ -78,6 +83,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	    -e  's:PLUGIN_NAME:${PLUGIN_NAME}:g' \
 	$< > $@
 
+
 install: install_plugin install_helper install_man
 
 install_plugin: ${PLUGIN_NAME}
@@ -98,7 +104,14 @@ install_man7: ${MAN7PAGES}
 	install -d ${DESTDIR}/${MAN7DIR}
 	install $? ${DESTDIR}/${MAN7DIR}
 
+
 clean:
 	$(RM) ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+
+
+dist:
+	git archive --format=tar --prefix ${PACKAGE_NAME}-${PACKAGE_VERSION}/ \
+		upstream/${PACKAGE_VERSION} \
+	| gzip -9f > ${PACKAGE_NAME}-${PACKAGE_VERSION}.tar.gz
 
 # EOF

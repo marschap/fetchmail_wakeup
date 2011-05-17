@@ -4,6 +4,7 @@
 * rename config variables in Makefile
 * install plugin into common module path
 * adapt #include's to 2.x conventions
+* README: update, mention 90-fetchmail_wakeup.conf
 
 Release 1.1.4 (final release for Dovecot 1.x)
 =============================================

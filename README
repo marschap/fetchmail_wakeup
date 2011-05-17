@@ -3,8 +3,10 @@ Fetchmail notification IMAP plugin for Dovecot
 
 Description
 -----------
-fetchmail_wakeup is a plugin for Dovecot 1.1.
-
+fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 & 2.0.
+Versions 1.x are intended to be used with dovecot 1.x,
+while the 2.x versions are targetted towards dovecot 2.0.
+ 
 It intercepts the IMAPv4 commands to fetch mail from the server:
 - STATUS: client polls for new mail
 - IDLE:   client tells server to push new mail
@@ -31,8 +33,8 @@ Copyrights
 Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
 - original version named wake_up_fetchmail.c
 
-Copyright (C) 2009 Peter Marschall <peter@adpm.de>
-- adaptions to dovecot 1.1
+Copyright (C) 2009-2011 Peter Marschall <peter@adpm.de>
+- adaptions to dovecot 1.1, 1.2 & 2.0
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
 
@@ -44,13 +46,13 @@ LGPL v2.1
 
 Installation
 ------------
-Installation of the plugin is essentially a 2-step process:
+Installation of the plugin is essentially a 3-step process:
 
 1) Configure the paths in Makefile according to your installation
    The relevant variables are:
 
-   * DOVECOT_INC_PATH - directory containing dovecot header files
-   * DOVECOT_IMAP_PLUGIN_PATH - directory where the plugin shall be installed
+   * DOVECOT_INCDIR - directory containing dovecot header files
+   * DOVECOT_IMAP_MODULEDIR - directory where the plugin shall be installed
    * BINDIR - directory where the helper program shall be installed
    * MAN1DIR - directory where the helper manunal page shall be installed
    * MAN7DIR - directory where the plugin's manual page shall be installed
@@ -131,6 +133,13 @@ This is a 2-step process:
    in the configuration options, and thus awaken fetchmail daemons of multiple
    users with this configuration.
 
+   With dovecot 2.0, the config file can be split into small parts that
+   are consolidated automatically by dovecot.
+   To support this mode of splitting config files, an example config snippet
+   containing the "plugin" part is provided in:
+
+     example-config/conf.d/90-fetchmail_wakeup.conf
+
 
 Now restart your dovecot daemon and enjoy the comfort of being able to control
 fetchmail by simply fetching mail from the server in your IMAP client.
@@ -139,7 +148,7 @@ fetchmail by simply fetching mail from the server in your IMAP client.
 Tests
 -----
 Original version tested with dovecot-1.0.3
-Current version tested with dovecot 1.1.13, 1.1.16
+Current version tested with dovecot 1.1.13, 1.1.16, various 1.2.x versions
 
 
 GIT archive structure

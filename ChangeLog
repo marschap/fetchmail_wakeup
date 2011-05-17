@@ -1,0 +1,74 @@
+Release 2.0.0 (first release for Dovecot 2.x)
+=============================================
+
+2011-05-17 Peter Marschall <peter@adpm.de>
+* rename 1.x function is_numeric() to 2.x str_is_numeric()
+* add sample config file example-config/conf.d/90-fetchmail_wakeup.conf
+* rename config variables in Makefile
+* install plugin into common module path
+* adapt #include's to 2.x conventions
+* README: update, mention 90-fetchmail_wakeup.conf
+* mention Dovecot 2.x in man page
+
+Release 1.1.4 (final release for Dovecot 1.x)
+=============================================
+
+2011-05-17 Peter Marschall <peter@adpm.de>
+* update README
+
+2011-01-23 Peter Marschall <peter@adpm.de>
+* update year in copyright messages
+
+2009-08-09  Peter Marschall <peter@adpm.de>
+* add ChangeLog: better late than never
+* Makefile: add rule to create distribution file
+* README: fix typo
+
+Release 1.1.3
+=============
+
+2009-08-02  Peter Marschall <peter@adpm.de> 
+* awaken-fetchmail.c: use configured fetchmail PID file
+* use configured paths in manual pages
+* README: update, document configuration, compilation via make
+
+Release 1.1.2
+=============
+
+2009-07-26  Peter Marschall <peter@adpm.de>
+* Makefile: add man pages to installation; comment
+* add awaken-fetchmail.1 manual page
+* fetchmail_wakeup.7: add license; slight changes
+
+2009-07-25  Peter Marschall <peter@adpm.de> 
+* README: fix a few typos
+* add fetchmail_wakeup.7 manual page
+* README: document how the git branches are used
+
+Release 1.1.1
+=============
+
+2009-07-25  Peter Marschall <peter@adpm.de> 
+* update README
+* add helper awaken-fetchmail
+
+Release 1.1.0
+=============
+
+2009-07-25  Peter Marschall <peter@adpm.de>
+* add Makefile and document its use in README
+* add README file
+* update copyright and other information
+* add support for config options
+* update compilation instructions
+* rename wake_up_fetchmail.c to fetchmail_wakeup.c
+* adapt init & de-init function names to Dovecot 1.1
+* register new command function using the orig flags
+* lengthen time between 2 fetchmail awakenings
+* adapt to dovecot 1.1 API
+
+Release 1.0.0
+=============
+
+2009-07-25  Peter Marschall <peter@adpm.de>
+* initial import

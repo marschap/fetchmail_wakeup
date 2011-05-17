@@ -2,10 +2,15 @@
 
 #### configuration begin ####
 
+# package name and latest version
+PACKAGE_NAME = dovecot-fetchmail
+#PACKAGE_VERSION = $(shell git tag | grep upstream | sort -r | head -n 1 | cut -d / -f 2)
+PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(shell git tag)))))
+
 # Dovecot's header directory
-DOVECOT_INC_PATH = /usr/include/dovecot
+DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
-DOVECOT_IMAP_PLUGIN_PATH = /usr/lib/dovecot/modules/imap
+DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
 # Dovecot's config directory (where dovecot.conf resides)
 DOVECOT_ETCDIR = /etc/dovecot
 # directory for binaries
@@ -43,12 +48,12 @@ build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
-	      -I${DOVECOT_INC_PATH} \
-	      -I${DOVECOT_INC_PATH}/src \
-	      -I${DOVECOT_INC_PATH}/src/lib \
-	      -I${DOVECOT_INC_PATH}/src/lib-storage \
-	      -I${DOVECOT_INC_PATH}/src/lib-mail \
-	      -I${DOVECOT_INC_PATH}/src/lib-imap \
+	      -I${DOVECOT_INCDIR} \
+	      -I${DOVECOT_INCDIR}/src \
+	      -I${DOVECOT_INCDIR}/src/lib \
+	      -I${DOVECOT_INCDIR}/src/lib-storage \
+	      -I${DOVECOT_INCDIR}/src/lib-mail \
+	      -I${DOVECOT_INCDIR}/src/lib-imap \
 	      -DHAVE_CONFIG_H \
 	      $< -o $@
 
@@ -59,7 +64,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	      $< -o $@
 
 %.1 : %.1.in
-	sed -e 's:DOVECOT_IMAP_PLUGIN_PATH:${DOVECOT_IMAP_PLUGIN_PATH}:g' \
+	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -69,7 +74,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 %.7 : %.7.in
-	sed -e 's:DOVECOT_IMAP_PLUGIN_PATH:${DOVECOT_IMAP_PLUGIN_PATH}:g' \
+	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -78,11 +83,12 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	    -e  's:PLUGIN_NAME:${PLUGIN_NAME}:g' \
 	$< > $@
 
+
 install: install_plugin install_helper install_man
 
 install_plugin: ${PLUGIN_NAME}
-	install -d ${DESTDIR}/${DOVECOT_IMAP_PLUGIN_PATH}
-	install $< ${DESTDIR}/${DOVECOT_IMAP_PLUGIN_PATH}
+	install -d ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
+	install $< ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
 
 install_helper: ${HELPER_NAME}
 	install -d ${DESTDIR}/${BINDIR}
@@ -98,7 +104,14 @@ install_man7: ${MAN7PAGES}
 	install -d ${DESTDIR}/${MAN7DIR}
 	install $? ${DESTDIR}/${MAN7DIR}
 
+
 clean:
 	$(RM) ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+
+
+dist:
+	git archive --format=tar --prefix ${PACKAGE_NAME}-${PACKAGE_VERSION}/ \
+		upstream/${PACKAGE_VERSION} \
+	| gzip -9f > ${PACKAGE_NAME}-${PACKAGE_VERSION}.tar.gz
 
 # EOF

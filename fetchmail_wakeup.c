@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
  * - original version named wake_up_fetchmail.c
  *
- * Copyright (C) 2009 Peter Marschall <peter@adpm.de>
+ * Copyright (C) 2009-2011 Peter Marschall <peter@adpm.de>
  * - adaptions to dovecot 1.1
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "lib/lib.h"
-#include "lib/imem.h"
-#include "imap/commands.h"
+#include "lib.h"
+#include "imem.h"
+#include "imap-commands.h"
 
 
 #define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
@@ -163,7 +163,7 @@ void fetchmail_wakeup_plugin_init(void)
 	/* parse global config variable "fetchmail_interval" */
 	str = getenv("FETCHMAIL_INTERVAL");
 	if (str != NULL) {
-		if (is_numeric(str, '\0')) {
+		if (str_is_numeric(str, '\0')) {
 			long value = strtol(str, NULL, 10);
 
 			if (value > 0)

@@ -163,7 +163,7 @@ void fetchmail_wakeup_plugin_init(void)
 	/* parse global config variable "fetchmail_interval" */
 	str = getenv("FETCHMAIL_INTERVAL");
 	if (str != NULL) {
-		if (is_numeric(str, '\0')) {
+		if (str_is_numeric(str, '\0')) {
 			long value = strtol(str, NULL, 10);
 
 			if (value > 0)

@@ -1,3 +1,6 @@
+Release 2.0.0 (first release for Dovecot 2.x)
+=============================================
+
 2011-05-17 Peter Marschall <peter@adpm.de>
 * rename 1.x function is_numeric() to 2.x str_is_numeric()
 * add sample config file example-config/conf.d/90-fetchmail_wakeup.conf

@@ -21,7 +21,9 @@
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
 
 .SH DESCRIPTION
-fetchmail_wakeup is a plugin for Dovecot 1.1.
+fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 & 2.0.
+Versions 1.1.x are intended to be used with dovecot 1.x,
+while version 2.x are targetted towards Dovecot 2.0.
 .PP
 It intercepts the following IMAPv4 commands to fetch mail from the server:
 .TP

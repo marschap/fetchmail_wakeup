@@ -1,3 +1,10 @@
+dovecot-fetchmail (2.0.0-0pm1) unstable; urgency=low
+
+  * new upstream release
+  * update installation logic to follow Debian's dovecot package
+
+ -- Peter Marschall <peter@adpm.de>  Tue, 17 May 2011 10:22:15 +0200
+
 dovecot-fetchmail (1.1.2-0pm1) unstable; urgency=low
 
   * new upstream release

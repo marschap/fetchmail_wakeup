@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "lib/lib.h"
-#include "lib/imem.h"
-#include "imap/commands.h"
+#include "lib.h"
+#include "imem.h"
+#include "imap-commands.h"
 
 
 #define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"

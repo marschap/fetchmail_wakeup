@@ -4,9 +4,28 @@
 set -e
 
 if [ "$1" = "configure" ]; then
+  CONFFILES="conf.d/90-fetchmail_wakeup.conf"
+
+	for conffile in $CONFFILES ; do
+		# Tell ucf that the file in /usr/share/dovecot is the latest
+		# maintainer version, and let it handle how to manage the real
+		# configuration file in /etc/dovecot.
+		ucf --three-way /usr/share/dovecot/$conffile /etc/dovecot/$conffile
+		ucfr dovecot-fetchmail /etc/dovecot/$conffile
+	done
+
+	# make /usr/bin/awaken-fetchmail suid fetchmail
 	if ! dpkg-statoverride --list /usr/bin/awaken-fetchmail > /dev/null 2>&1; then
 		dpkg-statoverride --update --add fetchmail root 04755 /usr/bin/awaken-fetchmail
 	fi
 fi
 
-exit 0
+if [ -x "/etc/init.d/dovecot" ]; then
+	if [ -x /usr/sbin/invoke-rc.d ]; then
+		invoke-rc.d dovecot restart
+	else
+		/etc/init.d/dovecot restart
+	fi
+fi
+
+#DEBHELPER#

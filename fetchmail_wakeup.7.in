@@ -67,7 +67,7 @@ extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
     ...
 
     \fBmail_plugins\fP = \fBfetchmail_wakeup\fP
-    \fBmail_plugin_dir\fP = DOVECOT_IMAP_PLUGIN_PATH
+    \fBmail_plugin_dir\fP = DOVECOT_IMAP_MODULEDIR
 
     ...
 }
@@ -127,7 +127,7 @@ fetchmail_wakeup reports its errors via Dovecot's regular logging mechanisms.
 .SH FILES
 .I DOVECOT_ETCDIR/dovecot.conf
 .br
-.I DOVECOT_IMAP_PLUGIN_PATH/PLUGIN_NAME
+.I DOVECOT_IMAP_MODULEDIR/PLUGIN_NAME
 
 
 .SH NOTES

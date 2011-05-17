@@ -49,8 +49,8 @@ Installation of the plugin is essentially a 3-step process:
 1) Configure the paths in Makefile according to your installation
    The relevant variables are:
 
-   * DOVECOT_INC_PATH - directory containing dovecot header files
-   * DOVECOT_IMAP_PLUGIN_PATH - directory where the plugin shall be installed
+   * DOVECOT_INCDIR - directory containing dovecot header files
+   * DOVECOT_IMAP_MODULEDIR - directory where the plugin shall be installed
    * BINDIR - directory where the helper program shall be installed
    * MAN1DIR - directory where the helper manunal page shall be installed
    * MAN7DIR - directory where the plugin's manual page shall be installed

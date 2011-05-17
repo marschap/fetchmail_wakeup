@@ -1,5 +1,6 @@
 usr/bin
 usr/share/man/man1
 usr/share/man/man7
-usr/lib/dovecot/modules/imap
+usr/lib/dovecot/modules
+usr/share/dovecot/conf.d
 usr/share/doc/dovecot-fetchmail

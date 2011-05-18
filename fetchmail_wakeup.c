@@ -22,26 +22,20 @@
 #include <unistd.h>
 #include <limits.h>
 #include "lib.h"
-#include "imem.h"
-#include "imap-commands.h"
+#include "imap-client.h"
 
 
 #define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
 #define FETCHMAIL_INTERVAL	60
 
-/*
- * delay (in seconds) between two invocations of fetchmail
- */
-static int fetchmail_interval = FETCHMAIL_INTERVAL;
-
 
 /*
- * Dovecot's real "IDLE" function
+ * Dovecot's real IMAPv4 "IDLE" function
  */
 static struct command *orig_cmd_idle_ptr;
 static struct command orig_cmd_idle;
 /*
- * Dovecot's real "STATUS" function
+ * Dovecot's real IMAPv4 "STATUS" function
  */
 static struct command *orig_cmd_status_ptr;
 static struct command orig_cmd_status;
@@ -75,9 +69,28 @@ static bool ratelimit(long interval)
  */
 static void fetchmail_wakeup(struct client_command_context *cmd)
 {
+	struct client *client = cmd->client;
+	long fetchmail_interval = FETCHMAIL_INTERVAL;
+
 	/* read config variables depending on the session */
-	char *fetchmail_helper = getenv("FETCHMAIL_HELPER");
-	char *fetchmail_pidfile = getenv("FETCHMAIL_PIDFILE");
+	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
+	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
+	const char *interval_str = mail_user_plugin_getenv(client->user, "fetchmail_interval");
+
+	/* convert config variable "fetchmail_interval" into a number */
+	if (interval_str != NULL) {
+		if (str_is_numeric(interval_str, '\0')) {
+			long value = strtol(interval_str, NULL, 10);
+
+			if (value > 0)
+				fetchmail_interval = value;
+			else
+				i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
+		}
+		else {
+			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
+		}
+	}
 
 	if (ratelimit(fetchmail_interval))
 		return;
@@ -164,24 +177,6 @@ static bool new_cmd_status(struct client_command_context *cmd)
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
-	char *str;
-
-	/* parse global config variable "fetchmail_interval" */
-	str = getenv("FETCHMAIL_INTERVAL");
-	if (str != NULL) {
-		if (str_is_numeric(str, '\0')) {
-			long value = strtol(str, NULL, 10);
-
-			if (value > 0)
-				fetchmail_interval = value;
-			else
-				i_warning("fetchmail_interval must be a positive number");
-		}
-		else {
-			i_warning("fetchmail_interval must be a positive number");
-		}
-	}
-
 	/* replace IMAPv4 "IDLE" command handler by our own */
 	orig_cmd_idle_ptr = command_find("IDLE");
 	if (orig_cmd_idle_ptr)

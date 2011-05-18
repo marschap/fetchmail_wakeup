@@ -4,6 +4,7 @@ Release 2.0.1
 2011-05-18 Peter Marschall <peter@adpm.de>
 * update function signature of init function
 * add/update comments
+* move all config value handling to fetchmail_wakeup()
 
 Release 2.0.0 (first release for Dovecot 2.x)
 =============================================

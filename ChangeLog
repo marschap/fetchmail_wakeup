@@ -1,3 +1,14 @@
+Release 2.0.1
+=============
+
+2011-05-18 Peter Marschall <peter@adpm.de>
+* update function signature of init function
+* add/update comments
+* move all config value handling to fetchmail_wakeup()
+* declare dependency on Dovecot's imap binary
+* simplify conversion of config value "fetchmail_interval" to number
+* add info to config file how to enable the plugin
+
 Release 2.0.0 (first release for Dovecot 2.x)
 =============================================
 

@@ -5,7 +5,7 @@
  * - original version named wake_up_fetchmail.c
  *
  * Copyright (C) 2009-2011 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1
+ * - adaptions to dovecot 1.1, 1.2 & 2.0
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *
@@ -22,26 +22,20 @@
 #include <unistd.h>
 #include <limits.h>
 #include "lib.h"
-#include "imem.h"
-#include "imap-commands.h"
+#include "imap-client.h"
 
 
 #define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
 #define FETCHMAIL_INTERVAL	60
 
-/*
- * delay (in seconds) between two invocations of fetchmail
- */
-static int fetchmail_interval = FETCHMAIL_INTERVAL;
-
 
 /*
- * Dovecot's real "IDLE" function
+ * Dovecot's real IMAPv4 "IDLE" function
  */
 static struct command *orig_cmd_idle_ptr;
 static struct command orig_cmd_idle;
 /*
- * Dovecot's real "STATUS" function
+ * Dovecot's real IMAPv4 "STATUS" function
  */
 static struct command *orig_cmd_status_ptr;
 static struct command orig_cmd_status;
@@ -75,9 +69,23 @@ static bool ratelimit(long interval)
  */
 static void fetchmail_wakeup(struct client_command_context *cmd)
 {
+	struct client *client = cmd->client;
+	long fetchmail_interval = FETCHMAIL_INTERVAL;
+
 	/* read config variables depending on the session */
-	char *fetchmail_helper = getenv("FETCHMAIL_HELPER");
-	char *fetchmail_pidfile = getenv("FETCHMAIL_PIDFILE");
+	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
+	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
+	const char *interval_str = mail_user_plugin_getenv(client->user, "fetchmail_interval");
+
+	/* convert config variable "fetchmail_interval" into a number */
+	if (interval_str != NULL) {
+		long value;
+
+		if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
+			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
+
+		fetchmail_interval = value;
+	}
 
 	if (ratelimit(fetchmail_interval))
 		return;
@@ -134,20 +142,26 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 
 /*
- * Our "IDLE" wrapper
+ * Our IMAPv4 "IDLE" wrapper
  */
 static bool new_cmd_idle(struct client_command_context *cmd)
 {
+	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
+
+	/* daisy chaining: call original IMAPv4 "IDLE" command chandler */
 	return orig_cmd_idle.func(cmd);
 }
 
 /*
- * Our "STATUS" wrapper
+ * Our IMAPv4 "STATUS" wrapper
  */
 static bool new_cmd_status(struct client_command_context *cmd)
 {
+	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
+
+	/* daisy chaining: call original IMAPv4 "STATUS" command chandler */
 	return orig_cmd_status.func(cmd);
 }
 
@@ -156,34 +170,16 @@ static bool new_cmd_status(struct client_command_context *cmd)
  * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
  * in place
  */
-void fetchmail_wakeup_plugin_init(void)
+void fetchmail_wakeup_plugin_init(struct module *module)
 {
-	char *str;
-
-	/* parse global config variable "fetchmail_interval" */
-	str = getenv("FETCHMAIL_INTERVAL");
-	if (str != NULL) {
-		if (str_is_numeric(str, '\0')) {
-			long value = strtol(str, NULL, 10);
-
-			if (value > 0)
-				fetchmail_interval = value;
-			else
-				i_warning("fetchmail_interval must be a positive number");
-		}
-		else {
-			i_warning("fetchmail_interval must be a positive number");
-		}
-	}
-
-	/* replace "IDLE" command handler by our own */
+	/* replace IMAPv4 "IDLE" command handler by our own */
 	orig_cmd_idle_ptr = command_find("IDLE");
 	if (orig_cmd_idle_ptr)
 		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
 	command_unregister("IDLE");
 	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
 
-	/* replace "STATUS" command handler by our own */
+	/* replace IMAPv4 "STATUS" command handler by our own */
 	orig_cmd_status_ptr = command_find("STATUS");
 	if (orig_cmd_status_ptr)
 		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
@@ -198,15 +194,23 @@ void fetchmail_wakeup_plugin_init(void)
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
+	/* restore previous IMAPv4 "IDLE" command handler */
 	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");
 		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
 	}
 
+	/* restore previous IMAPv4 "STATUS" command handler */
 	if (orig_cmd_status_ptr) {
 		command_unregister("STATUS");
 		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);
 	}
 }
+
+
+/*
+ * declare dependency on IMAP
+ */
+const char fetchmail_wakeup_plugin_binary_dependency[] = "imap";
 
 /* EOF */

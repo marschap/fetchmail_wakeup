@@ -79,17 +79,12 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 	/* convert config variable "fetchmail_interval" into a number */
 	if (interval_str != NULL) {
-		if (str_is_numeric(interval_str, '\0')) {
-			long value = strtol(interval_str, NULL, 10);
+		long value;
 
-			if (value > 0)
-				fetchmail_interval = value;
-			else
-				i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
-		}
-		else {
+		if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
 			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
-		}
+
+		fetchmail_interval = value;
 	}
 
 	if (ratelimit(fetchmail_interval))

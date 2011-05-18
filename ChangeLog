@@ -6,6 +6,7 @@ Release 2.0.1
 * add/update comments
 * move all config value handling to fetchmail_wakeup()
 * declare dependency on Dovecot's imap binary
+* simplify conversion of config value "fetchmail_interval" to number
 
 Release 2.0.0 (first release for Dovecot 2.x)
 =============================================

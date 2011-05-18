@@ -156,7 +156,7 @@ static bool new_cmd_status(struct client_command_context *cmd)
  * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
  * in place
  */
-void fetchmail_wakeup_plugin_init(void)
+void fetchmail_wakeup_plugin_init(struct module *module)
 {
 	char *str;
 

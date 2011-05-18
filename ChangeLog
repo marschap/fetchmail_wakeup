@@ -7,6 +7,7 @@ Release 2.0.1
 * move all config value handling to fetchmail_wakeup()
 * declare dependency on Dovecot's imap binary
 * simplify conversion of config value "fetchmail_interval" to number
+* add info to config file how to enable the plugin
 
 Release 2.0.0 (first release for Dovecot 2.x)
 =============================================

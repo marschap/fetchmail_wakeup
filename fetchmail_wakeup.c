@@ -5,7 +5,7 @@
  * - original version named wake_up_fetchmail.c
  *
  * Copyright (C) 2009-2011 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1
+ * - adaptions to dovecot 1.1, 1.2 & 2.0
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *
@@ -134,20 +134,26 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 
 /*
- * Our "IDLE" wrapper
+ * Our IMAPv4 "IDLE" wrapper
  */
 static bool new_cmd_idle(struct client_command_context *cmd)
 {
+	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
+
+	/* daisy chaining: call original IMAPv4 "IDLE" command chandler */
 	return orig_cmd_idle.func(cmd);
 }
 
 /*
- * Our "STATUS" wrapper
+ * Our IMAPv4 "STATUS" wrapper
  */
 static bool new_cmd_status(struct client_command_context *cmd)
 {
+	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
+
+	/* daisy chaining: call original IMAPv4 "STATUS" command chandler */
 	return orig_cmd_status.func(cmd);
 }
 
@@ -176,14 +182,14 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 		}
 	}
 
-	/* replace "IDLE" command handler by our own */
+	/* replace IMAPv4 "IDLE" command handler by our own */
 	orig_cmd_idle_ptr = command_find("IDLE");
 	if (orig_cmd_idle_ptr)
 		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
 	command_unregister("IDLE");
 	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
 
-	/* replace "STATUS" command handler by our own */
+	/* replace IMAPv4 "STATUS" command handler by our own */
 	orig_cmd_status_ptr = command_find("STATUS");
 	if (orig_cmd_status_ptr)
 		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
@@ -198,11 +204,13 @@ void fetchmail_wakeup_plugin_init(struct module *module)
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
+	/* restore previous IMAPv4 "IDLE" command handler */
 	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");
 		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
 	}
 
+	/* restore previous IMAPv4 "STATUS" command handler */
 	if (orig_cmd_status_ptr) {
 		command_unregister("STATUS");
 		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);

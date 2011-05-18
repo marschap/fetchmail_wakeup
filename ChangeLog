@@ -5,6 +5,7 @@ Release 2.0.1
 * update function signature of init function
 * add/update comments
 * move all config value handling to fetchmail_wakeup()
+* declare dependency on Dovecot's imap binary
 
 Release 2.0.0 (first release for Dovecot 2.x)
 =============================================

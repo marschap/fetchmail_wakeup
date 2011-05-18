@@ -212,4 +212,10 @@ void fetchmail_wakeup_plugin_deinit(void)
 	}
 }
 
+
+/*
+ * declare dependency on IMAP
+ */
+const char fetchmail_wakeup_plugin_binary_dependency[] = "imap";
+
 /* EOF */

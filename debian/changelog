@@ -1,3 +1,9 @@
+dovecot-fetchmail (2.0.1-0pm1) unstable; urgency=low
+
+  * new upstream release
+
+ -- Peter Marschall <peter@adpm.de>  Wed, 18 May 2011 16:02:40 +0200
+
 dovecot-fetchmail (2.0.0-0pm1) unstable; urgency=low
 
   * new upstream release

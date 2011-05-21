@@ -154,7 +154,7 @@ static bool new_cmd_idle(struct client_command_context *cmd)
 	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
 
-	/* daisy chaining: call original IMAPv4 "IDLE" command chandler */
+	/* daisy chaining: call original IMAPv4 "IDLE" command handler */
 	return orig_cmd_idle.func(cmd);
 }
 
@@ -166,7 +166,7 @@ static bool new_cmd_noop(struct client_command_context *cmd)
 	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
 
-	/* daisy chaining: call original IMAPv4 "NOOP" command chandler */
+	/* daisy chaining: call original IMAPv4 "NOOP" command handler */
 	return orig_cmd_noop.func(cmd);
 }
 
@@ -178,7 +178,7 @@ static bool new_cmd_status(struct client_command_context *cmd)
 	/* try to wake up fetchmail */
 	fetchmail_wakeup(cmd);
 
-	/* daisy chaining: call original IMAPv4 "STATUS" command chandler */
+	/* daisy chaining: call original IMAPv4 "STATUS" command handler */
 	return orig_cmd_status.func(cmd);
 }
 

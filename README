@@ -10,6 +10,7 @@ while the 2.x versions are targetted towards dovecot 2.0.
 It intercepts the IMAPv4 commands to fetch mail from the server:
 - STATUS: client polls for new mail
 - IDLE:   client tells server to push new mail
+- NOOP:   client allows server to notify on new mail
 and tries to wake up a running fetchmail daemon before performing
 the command.
 

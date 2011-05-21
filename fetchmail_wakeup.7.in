@@ -15,7 +15,7 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH FETCHMAIL_WAKEUP 7 "25 July 2009" "" "Dovecot Plugins"
+.TH FETCHMAIL_WAKEUP 7 "21 May 2011" "" "Dovecot Plugins"
 
 .SH NAME
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
@@ -32,6 +32,9 @@ client polling for new mail
 .TP
 .B IDLE
 client telling the server to push new mail
+.TP
+.B NOOP
+client allows server to notify on new mail
 .PP
 and tries to wake up a running fetchmail daemon before performing
 the command.

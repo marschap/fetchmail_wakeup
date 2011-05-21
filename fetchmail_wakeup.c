@@ -35,6 +35,11 @@
 static struct command *orig_cmd_idle_ptr;
 static struct command orig_cmd_idle;
 /*
+ * Dovecot's real IMAPv4 "NOOP" function
+ */
+static struct command *orig_cmd_noop_ptr;
+static struct command orig_cmd_noop;
+/*
  * Dovecot's real IMAPv4 "STATUS" function
  */
 static struct command *orig_cmd_status_ptr;
@@ -154,6 +159,18 @@ static bool new_cmd_idle(struct client_command_context *cmd)
 }
 
 /*
+ * Our IMAPv4 "NOOP" wrapper
+ */
+static bool new_cmd_noop(struct client_command_context *cmd)
+{
+	/* try to wake up fetchmail */
+	fetchmail_wakeup(cmd);
+
+	/* daisy chaining: call original IMAPv4 "NOOP" command chandler */
+	return orig_cmd_noop.func(cmd);
+}
+
+/*
  * Our IMAPv4 "STATUS" wrapper
  */
 static bool new_cmd_status(struct client_command_context *cmd)
@@ -167,7 +184,7 @@ static bool new_cmd_status(struct client_command_context *cmd)
 
 
 /*
- * Plugin init: remember dovecot's "IDLE" and "STATUS" functions and add our own
+ * Plugin init: remember dovecot's "IDLE", "NOOP" and "STATUS" functions and add our own
  * in place
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
@@ -179,6 +196,13 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 	command_unregister("IDLE");
 	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
 
+	/* replace IMAPv4 "NOOP" command handler by our own */
+	orig_cmd_noop_ptr = command_find("NOOP");
+	if (orig_cmd_noop_ptr)
+		memcpy(&orig_cmd_noop, orig_cmd_noop_ptr, sizeof(struct command));
+	command_unregister("NOOP");
+	command_register("NOOP", new_cmd_noop, orig_cmd_noop.flags);
+
 	/* replace IMAPv4 "STATUS" command handler by our own */
 	orig_cmd_status_ptr = command_find("STATUS");
 	if (orig_cmd_status_ptr)
@@ -188,7 +212,7 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 }
 
 /*
- * Plugin deinit: restore dovecot's "IDLE" and "STATUS" functions
+ * Plugin deinit: restore dovecot's "IDLE", "NOOP" and "STATUS" functions
  * The command name is dupped, for its memory location to be accessible even
  * when the plugin is unloaded
  */
@@ -198,6 +222,12 @@ void fetchmail_wakeup_plugin_deinit(void)
 	if (orig_cmd_idle_ptr) {
 		command_unregister("IDLE");
 		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
+	}
+
+	/* restore previous IMAPv4 "NOOP" command handler */
+	if (orig_cmd_noop_ptr) {
+		command_unregister("NOOP");
+		command_register(orig_cmd_noop.name, orig_cmd_noop.func, orig_cmd_noop.flags);
 	}
 
 	/* restore previous IMAPv4 "STATUS" command handler */

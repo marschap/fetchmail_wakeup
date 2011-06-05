@@ -9,7 +9,7 @@ Homepage: https://github.com/marschap/fetchmail_wakeup
 Package: dovecot-fetchmail
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd (>= 1:2.0.0), fetchmail
-Description: a Dovecot plugin that wakes up fetchmail
+Description: Dovecot plugin that wakes up fetchmail
  dovecot-fetchmail provides a plugin for the Dovecot IMAP server that
  awakens a sleeping fetchmail daemon whenever an IMAP client calls
  the IMAP "IDLE, "NOOP" or "STATUS" commands.

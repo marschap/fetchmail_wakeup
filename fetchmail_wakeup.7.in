@@ -110,7 +110,7 @@ is ignored.
 \fBplugin\fP {
     ...
 
-    ## fetchmail_wakeup plugin: awaken fetchmail on STATUS & IDLE commands
+    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, & STATUS commands
 
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)

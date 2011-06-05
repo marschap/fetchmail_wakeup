@@ -1,3 +1,12 @@
+dovecot-fetchmail (2.0.2-0pm1) unstable; urgency=low
+
+  * new upstream release
+  * debian/control: increase Standards-Version to 3.9.2
+  * debian/compat, debian/control: switch to debhelper v8
+  * make lintian clean
+
+ -- Peter Marschall <peter@adpm.de>  Sun, 05 Jun 2011 18:46:01 +0200
+
 dovecot-fetchmail (2.0.1-0pm1) unstable; urgency=low
 
   * new upstream release

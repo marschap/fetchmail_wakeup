@@ -12,4 +12,4 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd (>= 1:2.0.0), fetchma
 Description: a Dovecot plugin that wakes up fetchmail
  dovecot-fetchmail provides a plugin for the Dovecot IMAP server that
  awakens a sleeping fetchmail daemon whenever an IMAP client calls
- the IMAP "STATUS" or "IDLE" commands.
+ the IMAP "IDLE, "NOOP" or "STATUS" commands.

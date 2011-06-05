@@ -1,3 +1,6 @@
+2011-06-05 Peter Marschall <peter@adpm.de>
+* allow & use command-specific inverval variables
+
 2011-05-21 Peter Marschall <peter@adpm.de>
 * intercept the IMAPv4 NOOP call too
 * fix typos in comments

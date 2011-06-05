@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -27,6 +28,8 @@
 
 #define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
 #define FETCHMAIL_INTERVAL	60
+
+#define FETCHMAIL_IMAPCMD_LEN	10
 
 
 /*
@@ -90,6 +93,31 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
 
 		fetchmail_interval = value;
+	}
+
+	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate this */
+	if (cmd->name && strnlen(cmd->name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
+		int i;
+		char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
+
+		/* build variable name */
+		i_snprintf(interval_name, sizeof(interval_name),
+			"fetchmail_%s_interval", cmd->name);
+		/* convert it to lowercase */
+		for (i = 0; interval_name[i] != '\0' && i < sizeof(interval_name); i++)
+			interval_name[i] = i_tolower(interval_name[i]);
+		/* get its value */
+		interval_str = mail_user_plugin_getenv(client->user, interval_name);
+
+		/* convert convert the value to a number */
+		if (interval_str != NULL) {
+			long value;
+
+			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
+				i_warning("fetchmail_wakeup: %s must be a positive number", interval_name);
+
+			fetchmail_interval = value;
+		}
 	}
 
 	if (ratelimit(fetchmail_interval))

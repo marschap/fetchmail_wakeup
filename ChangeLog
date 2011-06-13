@@ -1,3 +1,6 @@
+Release 2.0.2
+=============
+
 2011-06-13 Peter Marschall <peter@adpm.de>
 * awaken-fetchmail: fix typo to make logging work correctly
 

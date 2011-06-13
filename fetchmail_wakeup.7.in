@@ -15,7 +15,7 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH FETCHMAIL_WAKEUP 7 "25 July 2009" "" "Dovecot Plugins"
+.TH FETCHMAIL_WAKEUP 7 "21 May 2011" "" "Dovecot Plugins"
 
 .SH NAME
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
@@ -32,6 +32,9 @@ client polling for new mail
 .TP
 .B IDLE
 client telling the server to push new mail
+.TP
+.B NOOP
+client allows server to notify on new mail
 .PP
 and tries to wake up a running fetchmail daemon before performing
 the command.
@@ -78,15 +81,23 @@ extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
 Then, set the plugin's configuration options.
 This is done in dovecot.conf's \fBplugin\fP section.
 
-fetchmail_wakeup supports three configuration options:
+fetchmail_wakeup supports six configuration options:
 .TP
 .BR fetchmail_interval = \fINUMBER\fP
 Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
 If it is not given, the interval defaults to \fB60\fP.
 .TP
+.BR fetchmail_idle_interval = \fINUMBER\fP
+.BR fetchmail_noop_interval = \fINUMBER\fP
+.BR fetchmail_status_interval = \fINUMBER\fP
+If defined, these variables take precedence over \fBfetchmail_interval\fP
+when the corresponding command triggers the plugin.
+.TP
 .BR fetchmail_helper = \fICOMMAND\fP
 Execute \fICOMMAND\fP to either start fetchmail (or any other mail fetching tool),
 or to awaken a running fetchmail daemon (or any other mail fetching tool).
+By setting any of these to a very large value, you can virtually disable
+triggering the plugin for the specific IMAP commands.
 .TP
 .BR fetchmail_pidfile = \fINAME\fP
 Use \fINAME\fP as the file to read the process ID (PID) of a running fetchmail
@@ -99,11 +110,14 @@ is ignored.
 \fBplugin\fP {
     ...
 
-    ## fetchmail_wakeup plugin: awaken fetchmail on STATUS & IDLE commands
+    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, & STATUS commands
 
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)
     \fBfetchmail_interval\fP = 60
+    #\fBfetchmail_idle_interval\fP = 60
+    #\fBfetchmail_noop_interval\fP = 60
+    #\fBfetchmail_status_interval\fP = 60
 
     # a helper program to notify fetchmail accordingly
     \fBfetchmail_helper\fP = BINDIR/awaken-fetchmail
@@ -124,7 +138,8 @@ fetchmail by simply fetching mail from the server in your IMAP client.
 
 
 .SH ERRORS
-fetchmail_wakeup reports its errors via Dovecot's regular logging mechanisms.
+fetchmail_wakeup reports its errors and warnings via Dovecot's regular logging
+mechanisms.
 
 .SH FILES
 .I DOVECOT_ETCDIR/dovecot.conf

@@ -15,7 +15,7 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH AWAKEN-FETCHMAIL 1 "26 July 2009" "" "Dovecot Plugins"
+.TH AWAKEN-FETCHMAIL 1 "20 May 2011" "" "Dovecot Plugins"
 
 .SH NAME
 awaken-fetchmail \- setuid helper to trigger fetchmail wakeups
@@ -37,7 +37,23 @@ to the user the system-wide fetchmail daemon is running with.
 .SH CONFIGURATION
 For security reasons, awaken-fetchmail can be configured at compile time only.
 
+.SH OPTIONS
+Normal invocation of awaken-fetchmail does not require any options.
+Logging behavior, however, can be fine-tuned by specifying one or more
+of the following flags:
+.TP
+.B \-\-quiet\fR, \fB\-q
+Be quiet: suppress any log messages to syslog.
+.TP
+.B \-\-verbose\fR, \fB\-v
+Be verbose: log informational messages to syslog.
+.TP
+.B \-\-help\fR, \fB\-h
+Display usage information and exit.
+
 .SH ERRORS
+Any potential error or informational messages of awaken-fetchmail are reported
+via syslog's LOG_MAIL facility.
 After having successfully sent the signal to fetchmail, awaken-fetchmail
 returns \fBEXIT_SUCCESS\fP, on error it returns \fBEXIT_FAILURE\fP.
 

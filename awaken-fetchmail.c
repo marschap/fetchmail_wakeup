@@ -137,7 +137,7 @@ void logger(int priority, const char *format, ...)
 		va_list ap;
 
 		va_start(ap, format);
-		syslog(priority | LOG_MAIL, format, ap);
+		vsyslog(priority | LOG_MAIL, format, ap);
 		va_end(ap);
 	}
 }

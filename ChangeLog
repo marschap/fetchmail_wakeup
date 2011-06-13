@@ -1,3 +1,6 @@
+2011-06-13 Peter Marschall <peter@adpm.de>
+* awaken-fetchmail: fix typo to make logging work correctly
+
 2011-06-05 Peter Marschall <peter@adpm.de>
 * allow & use command-specific inverval variables
 * don't forget to mention NOOP in comments as well

@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <string.h>		/* for strerror() */
 #include <getopt.h>		/* for getopt_long() */
 #include <syslog.h>		/* for openlog() */
 #include <stdarg.h>		/* for vsyslog() */
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
 	if (optind != argc)
 		usage(EXIT_FAILURE);
 
+	errno = 0;
 	file = fopen(FETCHMAIL_PIDFILE, "r");
 
 	if (file != NULL) {
@@ -106,18 +108,21 @@ int main(int argc, char *argv[])
 					exit(EXIT_SUCCESS);
 				}
 				else
-					logger(LOG_ERR, "unable to send signal SIGUSR1 to PID %ld", pid);
+					logger(LOG_ERR, "unable to send signal SIGUSR1 to PID %ld: %s",
+						pid, strerror(errno));
 			}
 			else
 				logger(LOG_ERR, "no numeric PID found in file '%s'", FETCHMAIL_PIDFILE);
 		}
 		else
-			logger(LOG_ERR, "unable to read from file '%s'", FETCHMAIL_PIDFILE);
+			logger(LOG_ERR, "unable to read from file '%s': %s",
+				FETCHMAIL_PIDFILE, strerror(errno));
 
 		fclose(file);
 	}
 	else
-		logger(LOG_ERR, "unable to open file '%s'", FETCHMAIL_PIDFILE);
+		logger(LOG_ERR, "unable to open file '%s': %s",
+			FETCHMAIL_PIDFILE, strerror(errno));
 
 	exit(EXIT_FAILURE);
 }

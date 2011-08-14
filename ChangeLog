@@ -1,3 +1,9 @@
+Release 2.0.3 (unreleased)
+==========================
+
+2011-08-14 Peter Marschall <peter@adpm.de>
+* awaken-fetchmail: more detailed log messages
+
 Release 2.0.2
 =============
 

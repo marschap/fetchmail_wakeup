@@ -2,6 +2,7 @@ Release 2.0.3 (unreleased)
 ==========================
 
 2011-08-21 Peter Marschall <peter@adpm.de>
+* contrib/dovecot-getmail.sh: helper script by August Mayer <august.mayer@gmx.at>
 * fetchmail_wakeup: use type long long for the time difference
 
 2011-08-14 Peter Marschall <peter@adpm.de>

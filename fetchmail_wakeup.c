@@ -56,14 +56,14 @@ static bool ratelimit(long interval)
 {
 	static struct timeval last_one;
 	struct timeval now;
-	long millisec_delta;
+	long long millisec_delta;
 
 	if (gettimeofday(&now, NULL))
 		return FALSE;
 
-	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000 +
-	                  now.tv_usec - last_one.tv_usec) / 1000;
-	if (millisec_delta > interval * 1000) {
+	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
+	                  now.tv_usec - last_one.tv_usec) / 1000LL;
+	if (millisec_delta > interval * 1000LL) {
 		last_one = now;
 		return FALSE;
 	}

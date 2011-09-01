@@ -90,8 +90,9 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 		if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
 			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
-
-		fetchmail_interval = value;
+			/* fall back to value of FETCHMAIL_INTERVAL */
+		else
+			fetchmail_interval = value;
 	}
 
 	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate this */
@@ -113,8 +114,9 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
 				i_warning("fetchmail_wakeup: %s must be a positive number", interval_name);
-
-			fetchmail_interval = value;
+				/* fall back to value of 'fetchmail_interval' */
+			else
+				fetchmail_interval = value;
 		}
 	}
 

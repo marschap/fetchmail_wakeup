@@ -50,6 +50,29 @@ static struct overrides cmds[] = {
 
 
 /*
+ * Get a interval value from config and parse it into a number (with fallback for failures)
+ */
+static long getenv_interval(struct mail_user *user, const char *name, long fallback)
+{
+	if (name != NULL) {
+		const char *value_as_str = mail_user_plugin_getenv(user, name);
+
+		if (value_as_str != NULL) {
+			long value;
+
+			if ((str_to_long(value_as_str, &value) < 0) || (value <= 0)) {
+				i_warning("fetchmail_wakeup: %s must be a positive number", name);
+				return fallback;
+			}
+			else
+				return value;
+		}
+	}
+	return fallback;
+}
+
+
+/*
  * Don't bother waking up fetchmail too often
  */
 static bool ratelimit(long interval)
@@ -83,33 +106,12 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 	/* read config variables depending on the session */
 	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
 	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
-	const char *interval_str = mail_user_plugin_getenv(client->user, "fetchmail_interval");
 
 	/* convert config variable "fetchmail_interval" into a number */
-	if (interval_str != NULL) {
-		long value;
+	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
-		if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
-			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
-			/* fall back to value of FETCHMAIL_INTERVAL */
-		else
-			fetchmail_interval = value;
-	}
-
-	/* if a command-specific fetchmail_<CMD>_interval was passwd, evaluate it */
-	if (interval_name != NULL) {
-		interval_str = mail_user_plugin_getenv(client->user, interval_name);
-
-		if (interval_str != NULL) {
-			long value;
-
-			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
-				i_warning("fetchmail_wakeup: %s must be a positive number", interval_name);
-				/* fall back to value of 'fetchmail_interval' */
-			else
-				fetchmail_interval = value;
-		}
-	}
+	/* if a command-specific fetchmail_<CMD>_interval was passed, evaluate it */
+	fetchmail_interval = getenv_interval(client->user, interval_name, fetchmail_interval);
 
 	if (ratelimit(fetchmail_interval))
 		return;

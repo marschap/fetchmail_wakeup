@@ -32,21 +32,20 @@
 #define FETCHMAIL_IMAPCMD_LEN	10
 
 
-/*
- * Dovecot's real IMAPv4 "IDLE" function
- */
-static struct command *orig_cmd_idle_ptr;
-static struct command orig_cmd_idle;
-/*
- * Dovecot's real IMAPv4 "NOOP" function
- */
-static struct command *orig_cmd_noop_ptr;
-static struct command orig_cmd_noop;
-/*
- * Dovecot's real IMAPv4 "STATUS" function
- */
-static struct command *orig_cmd_status_ptr;
-static struct command orig_cmd_status;
+/* data structure for commands to be overridden */
+struct overrides {
+	const char *name;		/* the IMAPv4 command name */
+	struct command orig_cmd;	/* copy of the original command's data structure */
+};
+
+
+/* commands that can be overridden */
+static struct overrides cmds[] = {
+	{ "IDLE",   {} },
+	{ "NOOP",   {} },
+	{ "STATUS", {} },
+	{ NULL,     {} }
+};
 
 
 /*
@@ -175,93 +174,60 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 
 /*
- * Our IMAPv4 "IDLE" wrapper
+ * Our IMAPv4 command wrapper that calls fetchmail_wakeup
  */
-static bool new_cmd_idle(struct client_command_context *cmd)
+static bool cmd_with_fetchmail(struct client_command_context *cmd)
 {
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
+	if (cmd != NULL) {
+		int i;
 
-	/* daisy chaining: call original IMAPv4 "IDLE" command handler */
-	return orig_cmd_idle.func(cmd);
-}
+		/* try to wake up fetchmail */
+		fetchmail_wakeup(cmd);
 
-/*
- * Our IMAPv4 "NOOP" wrapper
- */
-static bool new_cmd_noop(struct client_command_context *cmd)
-{
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
-
-	/* daisy chaining: call original IMAPv4 "NOOP" command handler */
-	return orig_cmd_noop.func(cmd);
-}
-
-/*
- * Our IMAPv4 "STATUS" wrapper
- */
-static bool new_cmd_status(struct client_command_context *cmd)
-{
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
-
-	/* daisy chaining: call original IMAPv4 "STATUS" command handler */
-	return orig_cmd_status.func(cmd);
+		/* daisy chaining: call original IMAPv4 command handler */
+		for (i = 0; cmds[i].name != NULL; i++) {
+			if (strcasecmp(cmds[i].name, cmd->name) == 0)
+				return ((cmds[i].orig_cmd.func != NULL)
+					? cmds[i].orig_cmd.func(cmd)
+					: FALSE);
+		}
+	}
+	return FALSE;
 }
 
 
 /*
- * Plugin init: remember dovecot's "IDLE", "NOOP" and "STATUS" functions and add our own
+ * Plugin init: remember dovecot's original IMAPv4 handler functions and add our own
  * in place
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
-	/* replace IMAPv4 "IDLE" command handler by our own */
-	orig_cmd_idle_ptr = command_find("IDLE");
-	if (orig_cmd_idle_ptr)
-		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
-	command_unregister("IDLE");
-	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
+	int i;
 
-	/* replace IMAPv4 "NOOP" command handler by our own */
-	orig_cmd_noop_ptr = command_find("NOOP");
-	if (orig_cmd_noop_ptr)
-		memcpy(&orig_cmd_noop, orig_cmd_noop_ptr, sizeof(struct command));
-	command_unregister("NOOP");
-	command_register("NOOP", new_cmd_noop, orig_cmd_noop.flags);
+	/* replace IMAPv4 command handlers by our own */
+	for (i = 0; cmds[i].name != NULL; i++) {
+		struct command *orig_cmd_ptr = command_find(cmds[i].name);
 
-	/* replace IMAPv4 "STATUS" command handler by our own */
-	orig_cmd_status_ptr = command_find("STATUS");
-	if (orig_cmd_status_ptr)
-		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
-	command_unregister("STATUS");
-	command_register("STATUS", new_cmd_status, orig_cmd_status.flags);
+		if (orig_cmd_ptr != NULL) {
+			memcpy(&cmds[i].orig_cmd, orig_cmd_ptr, sizeof(struct command));
+
+			command_unregister(cmds[i].name);
+			command_register(cmds[i].name, cmd_with_fetchmail, cmds[i].orig_cmd.flags);
+		}
+	}
 }
 
 /*
- * Plugin deinit: restore dovecot's "IDLE", "NOOP" and "STATUS" functions
- * The command name is dupped, for its memory location to be accessible even
- * when the plugin is unloaded
+ * Plugin deinit: restore dovecot's original IMAPv4 handler functions
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
-	/* restore previous IMAPv4 "IDLE" command handler */
-	if (orig_cmd_idle_ptr) {
-		command_unregister("IDLE");
-		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
-	}
+	int i;
 
-	/* restore previous IMAPv4 "NOOP" command handler */
-	if (orig_cmd_noop_ptr) {
-		command_unregister("NOOP");
-		command_register(orig_cmd_noop.name, orig_cmd_noop.func, orig_cmd_noop.flags);
-	}
-
-	/* restore previous IMAPv4 "STATUS" command handler */
-	if (orig_cmd_status_ptr) {
-		command_unregister("STATUS");
-		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);
+	/* restore previous IMAPv4 command handlers */
+	for (i = 0; cmds[i].name != NULL; i++) {
+		command_unregister(cmds[i].name);
+		command_register(cmds[i].orig_cmd.name, cmds[i].orig_cmd.func, cmds[i].orig_cmd.flags);
 	}
 }
 

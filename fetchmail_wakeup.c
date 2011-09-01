@@ -35,16 +35,17 @@
 /* data structure for commands to be overridden */
 struct overrides {
 	const char *name;		/* the IMAPv4 command name */
+	char *interval_name;		/* "fetchmail_<cmd>_interval" variable name */
 	struct command orig_cmd;	/* copy of the original command's data structure */
 };
 
 
 /* commands that can be overridden */
 static struct overrides cmds[] = {
-	{ "IDLE",   {} },
-	{ "NOOP",   {} },
-	{ "STATUS", {} },
-	{ NULL,     {} }
+	{ "IDLE",   NULL, {} },
+	{ "NOOP",   NULL, {} },
+	{ "STATUS", NULL, {} },
+	{ NULL,     NULL, {} }
 };
 
 
@@ -95,21 +96,21 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 			fetchmail_interval = value;
 	}
 
-	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate this */
-	if (cmd->name && strnlen(cmd->name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
+	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate it */
+	if (cmd->name) {
 		int i;
-		char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
+		const char *interval_name = NULL;
 
-		/* build variable name */
-		i_snprintf(interval_name, sizeof(interval_name),
-			"fetchmail_%s_interval", cmd->name);
-		/* convert it to lowercase */
-		str_lcase(interval_name);
-		/* get its value */
-		interval_str = mail_user_plugin_getenv(client->user, interval_name);
+		/* search in list of overrides */
+		for (i = 0; cmds[i].name != NULL; i++) {
+			if (strcasecmp(cmd->name, cmds[i].name) == 0) {
+				interval_name = cmds[i].interval_name;
+				break;
+			}
+		}
 
-		/* convert convert the value to a number */
-		if (interval_str != NULL) {
+		/* convert the value to a number */
+		if (interval_name != NULL) {
 			long value;
 
 			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
@@ -212,6 +213,20 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 		if (orig_cmd_ptr != NULL) {
 			memcpy(&cmds[i].orig_cmd, orig_cmd_ptr, sizeof(struct command));
 
+			/* build 'fetchmail_<CMD>_interval' variable name & save it */
+			if (strnlen(cmds[i].name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
+				char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
+
+				/* build variable name */
+				i_snprintf(interval_name, sizeof(interval_name),
+					"fetchmail_%s_interval", cmds[i].name);
+				/* convert it to lowercase */
+				str_lcase(interval_name);
+
+				/* store it */
+				cmds[i].interval_name = i_strdup(interval_name);
+			}
+
 			command_unregister(cmds[i].name);
 			command_register(cmds[i].name, cmd_with_fetchmail, cmds[i].orig_cmd.flags);
 		}
@@ -229,6 +244,10 @@ void fetchmail_wakeup_plugin_deinit(void)
 	for (i = 0; cmds[i].name != NULL; i++) {
 		command_unregister(cmds[i].name);
 		command_register(cmds[i].orig_cmd.name, cmds[i].orig_cmd.func, cmds[i].orig_cmd.flags);
+
+		/* free pre-built 'fetchmail_<CMD>_interval' variable name */
+		if (cmds[i].interval_name != NULL)
+			i_free_and_null(cmds[i].interval_name);
 	}
 }
 

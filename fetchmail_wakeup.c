@@ -103,8 +103,7 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 		i_snprintf(interval_name, sizeof(interval_name),
 			"fetchmail_%s_interval", cmd->name);
 		/* convert it to lowercase */
-		for (i = 0; interval_name[i] != '\0' && i < sizeof(interval_name); i++)
-			interval_name[i] = i_tolower(interval_name[i]);
+		str_lcase(interval_name);
 		/* get its value */
 		interval_str = mail_user_plugin_getenv(client->user, interval_name);
 

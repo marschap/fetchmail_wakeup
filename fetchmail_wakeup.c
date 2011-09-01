@@ -75,7 +75,7 @@ static bool ratelimit(long interval)
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
-static void fetchmail_wakeup(struct client_command_context *cmd)
+static void fetchmail_wakeup(struct client_command_context *cmd, const char *interval_name)
 {
 	struct client *client = cmd->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
@@ -96,21 +96,11 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 			fetchmail_interval = value;
 	}
 
-	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate it */
-	if (cmd->name) {
-		int i;
-		const char *interval_name = NULL;
+	/* if a command-specific fetchmail_<CMD>_interval was passwd, evaluate it */
+	if (interval_name != NULL) {
+		interval_str = mail_user_plugin_getenv(client->user, interval_name);
 
-		/* search in list of overrides */
-		for (i = 0; cmds[i].name != NULL; i++) {
-			if (strcasecmp(cmd->name, cmds[i].name) == 0) {
-				interval_name = cmds[i].interval_name;
-				break;
-			}
-		}
-
-		/* convert the value to a number */
-		if (interval_name != NULL) {
+		if (interval_str != NULL) {
 			long value;
 
 			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
@@ -183,15 +173,17 @@ static bool cmd_with_fetchmail(struct client_command_context *cmd)
 	if (cmd != NULL) {
 		int i;
 
-		/* try to wake up fetchmail */
-		fetchmail_wakeup(cmd);
-
-		/* daisy chaining: call original IMAPv4 command handler */
 		for (i = 0; cmds[i].name != NULL; i++) {
-			if (strcasecmp(cmds[i].name, cmd->name) == 0)
+			if (strcasecmp(cmds[i].name, cmd->name) == 0) {
+
+				/* try to wake up fetchmail */
+				fetchmail_wakeup(cmd, cmds[i].interval_name);
+
+				/* daisy chaining: call original IMAPv4 command handler */
 				return ((cmds[i].orig_cmd.func != NULL)
 					? cmds[i].orig_cmd.func(cmd)
 					: FALSE);
+			}
 		}
 	}
 	return FALSE;

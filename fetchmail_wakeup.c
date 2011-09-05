@@ -32,21 +32,44 @@
 #define FETCHMAIL_IMAPCMD_LEN	10
 
 
+/* data structure for commands to be overridden */
+struct overrides {
+	const char *name;		/* the IMAPv4 command name */
+	char *interval_name;		/* "fetchmail_<cmd>_interval" variable name */
+	struct command orig_cmd;	/* copy of the original command's data structure */
+};
+
+
+/* commands that can be overridden */
+static struct overrides cmds[] = {
+	{ "IDLE",   NULL, {} },
+	{ "NOOP",   NULL, {} },
+	{ "STATUS", NULL, {} },
+	{ NULL,     NULL, {} }
+};
+
+
 /*
- * Dovecot's real IMAPv4 "IDLE" function
+ * Get a interval value from config and parse it into a number (with fallback for failures)
  */
-static struct command *orig_cmd_idle_ptr;
-static struct command orig_cmd_idle;
-/*
- * Dovecot's real IMAPv4 "NOOP" function
- */
-static struct command *orig_cmd_noop_ptr;
-static struct command orig_cmd_noop;
-/*
- * Dovecot's real IMAPv4 "STATUS" function
- */
-static struct command *orig_cmd_status_ptr;
-static struct command orig_cmd_status;
+static long getenv_interval(struct mail_user *user, const char *name, long fallback)
+{
+	if (name != NULL) {
+		const char *value_as_str = mail_user_plugin_getenv(user, name);
+
+		if (value_as_str != NULL) {
+			long value;
+
+			if ((str_to_long(value_as_str, &value) < 0) || (value <= 0)) {
+				i_warning("fetchmail_wakeup: %s must be a positive number", name);
+				return fallback;
+			}
+			else
+				return value;
+		}
+	}
+	return fallback;
+}
 
 
 /*
@@ -56,14 +79,14 @@ static bool ratelimit(long interval)
 {
 	static struct timeval last_one;
 	struct timeval now;
-	long millisec_delta;
+	long long millisec_delta;
 
 	if (gettimeofday(&now, NULL))
 		return FALSE;
 
-	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000 +
-	                  now.tv_usec - last_one.tv_usec) / 1000;
-	if (millisec_delta > interval * 1000) {
+	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
+	                  now.tv_usec - last_one.tv_usec) / 1000LL;
+	if (millisec_delta > interval * 1000LL) {
 		last_one = now;
 		return FALSE;
 	}
@@ -75,7 +98,7 @@ static bool ratelimit(long interval)
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
-static void fetchmail_wakeup(struct client_command_context *cmd)
+static void fetchmail_wakeup(struct client_command_context *cmd, const char *interval_name)
 {
 	struct client *client = cmd->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
@@ -83,51 +106,33 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 	/* read config variables depending on the session */
 	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
 	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
-	const char *interval_str = mail_user_plugin_getenv(client->user, "fetchmail_interval");
 
 	/* convert config variable "fetchmail_interval" into a number */
-	if (interval_str != NULL) {
-		long value;
+	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
-		if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
-			i_warning("fetchmail_wakeup: fetchmail_interval must be a positive number");
+	/* if a command-specific fetchmail_<CMD>_interval was passed, evaluate it */
+	fetchmail_interval = getenv_interval(client->user, interval_name, fetchmail_interval);
 
-		fetchmail_interval = value;
-	}
-
-	/* try to find a command-specific fetchmail_<CMD>_interval, and evaluate this */
-	if (cmd->name && strnlen(cmd->name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
-		int i;
-		char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
-
-		/* build variable name */
-		i_snprintf(interval_name, sizeof(interval_name),
-			"fetchmail_%s_interval", cmd->name);
-		/* convert it to lowercase */
-		for (i = 0; interval_name[i] != '\0' && i < sizeof(interval_name); i++)
-			interval_name[i] = i_tolower(interval_name[i]);
-		/* get its value */
-		interval_str = mail_user_plugin_getenv(client->user, interval_name);
-
-		/* convert convert the value to a number */
-		if (interval_str != NULL) {
-			long value;
-
-			if ((str_to_long(interval_str, &value) < 0) || (value <= 0))
-				i_warning("fetchmail_wakeup: %s must be a positive number", interval_name);
-
-			fetchmail_interval = value;
-		}
-	}
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, cmd->name);
+#endif
 
 	if (ratelimit(fetchmail_interval))
 		return;
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail_wakeup: rate limit passed.");
+#endif
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
 		pid_t pid;
 		int status;
 		char *const *argv;
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail wakeup: executing %s.", fetchmail_helper);
+#endif
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
@@ -152,6 +157,11 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		FILE *pidfile = fopen(fetchmail_pidfile, "r");
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
+#endif
+
 		if (pidfile) {
 			pid_t pid = 0;
 
@@ -175,93 +185,80 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 
 
 /*
- * Our IMAPv4 "IDLE" wrapper
+ * Our IMAPv4 command wrapper that calls fetchmail_wakeup
  */
-static bool new_cmd_idle(struct client_command_context *cmd)
+static bool cmd_with_fetchmail(struct client_command_context *cmd)
 {
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
+	if (cmd != NULL) {
+		int i;
 
-	/* daisy chaining: call original IMAPv4 "IDLE" command handler */
-	return orig_cmd_idle.func(cmd);
-}
+		for (i = 0; cmds[i].name != NULL; i++) {
+			if (strcasecmp(cmds[i].name, cmd->name) == 0) {
 
-/*
- * Our IMAPv4 "NOOP" wrapper
- */
-static bool new_cmd_noop(struct client_command_context *cmd)
-{
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
+				/* try to wake up fetchmail */
+				fetchmail_wakeup(cmd, cmds[i].interval_name);
 
-	/* daisy chaining: call original IMAPv4 "NOOP" command handler */
-	return orig_cmd_noop.func(cmd);
-}
-
-/*
- * Our IMAPv4 "STATUS" wrapper
- */
-static bool new_cmd_status(struct client_command_context *cmd)
-{
-	/* try to wake up fetchmail */
-	fetchmail_wakeup(cmd);
-
-	/* daisy chaining: call original IMAPv4 "STATUS" command handler */
-	return orig_cmd_status.func(cmd);
+				/* daisy chaining: call original IMAPv4 command handler */
+				return ((cmds[i].orig_cmd.func != NULL)
+					? cmds[i].orig_cmd.func(cmd)
+					: FALSE);
+			}
+		}
+	}
+	return FALSE;
 }
 
 
 /*
- * Plugin init: remember dovecot's "IDLE", "NOOP" and "STATUS" functions and add our own
+ * Plugin init: remember dovecot's original IMAPv4 handler functions and add our own
  * in place
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
-	/* replace IMAPv4 "IDLE" command handler by our own */
-	orig_cmd_idle_ptr = command_find("IDLE");
-	if (orig_cmd_idle_ptr)
-		memcpy(&orig_cmd_idle, orig_cmd_idle_ptr, sizeof(struct command));
-	command_unregister("IDLE");
-	command_register("IDLE", new_cmd_idle, orig_cmd_idle.flags);
+	int i;
 
-	/* replace IMAPv4 "NOOP" command handler by our own */
-	orig_cmd_noop_ptr = command_find("NOOP");
-	if (orig_cmd_noop_ptr)
-		memcpy(&orig_cmd_noop, orig_cmd_noop_ptr, sizeof(struct command));
-	command_unregister("NOOP");
-	command_register("NOOP", new_cmd_noop, orig_cmd_noop.flags);
+	/* replace IMAPv4 command handlers by our own */
+	for (i = 0; cmds[i].name != NULL; i++) {
+		struct command *orig_cmd_ptr = command_find(cmds[i].name);
 
-	/* replace IMAPv4 "STATUS" command handler by our own */
-	orig_cmd_status_ptr = command_find("STATUS");
-	if (orig_cmd_status_ptr)
-		memcpy(&orig_cmd_status, orig_cmd_status_ptr, sizeof(struct command));
-	command_unregister("STATUS");
-	command_register("STATUS", new_cmd_status, orig_cmd_status.flags);
+		if (orig_cmd_ptr != NULL) {
+			memcpy(&cmds[i].orig_cmd, orig_cmd_ptr, sizeof(struct command));
+
+			/* build 'fetchmail_<CMD>_interval' variable name & save it */
+			if (strnlen(cmds[i].name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
+				char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
+
+				/* build variable name */
+				i_snprintf(interval_name, sizeof(interval_name),
+					"fetchmail_%s_interval", cmds[i].name);
+				/* convert it to lowercase */
+				str_lcase(interval_name);
+
+				/* store it */
+				cmds[i].interval_name = i_strdup(interval_name);
+			}
+
+			command_unregister(cmds[i].name);
+			command_register(cmds[i].name, cmd_with_fetchmail, cmds[i].orig_cmd.flags);
+		}
+	}
 }
 
 /*
- * Plugin deinit: restore dovecot's "IDLE", "NOOP" and "STATUS" functions
- * The command name is dupped, for its memory location to be accessible even
- * when the plugin is unloaded
+ * Plugin deinit: restore dovecot's original IMAPv4 handler functions
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
-	/* restore previous IMAPv4 "IDLE" command handler */
-	if (orig_cmd_idle_ptr) {
-		command_unregister("IDLE");
-		command_register(orig_cmd_idle.name, orig_cmd_idle.func, orig_cmd_idle.flags);
-	}
+	int i;
 
-	/* restore previous IMAPv4 "NOOP" command handler */
-	if (orig_cmd_noop_ptr) {
-		command_unregister("NOOP");
-		command_register(orig_cmd_noop.name, orig_cmd_noop.func, orig_cmd_noop.flags);
-	}
+	/* restore previous IMAPv4 command handlers */
+	for (i = 0; cmds[i].name != NULL; i++) {
+		command_unregister(cmds[i].name);
+		command_register(cmds[i].orig_cmd.name, cmds[i].orig_cmd.func, cmds[i].orig_cmd.flags);
 
-	/* restore previous IMAPv4 "STATUS" command handler */
-	if (orig_cmd_status_ptr) {
-		command_unregister("STATUS");
-		command_register(orig_cmd_status.name, orig_cmd_status.func, orig_cmd_status.flags);
+		/* free pre-built 'fetchmail_<CMD>_interval' variable name */
+		if (cmds[i].interval_name != NULL)
+			i_free_and_null(cmds[i].interval_name);
 	}
 }
 

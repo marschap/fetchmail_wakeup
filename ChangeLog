@@ -1,3 +1,24 @@
+Release 2.0.3
+=============
+
+2011-09-05 Peter Marschall <peter@adpm.de>
+* fetchmail_wakeup: add debugging statements
+
+2011-09-01 Peter Marschall <peter@adpm.de>
+* fetchmail_wakeup: factor out conversion str -> number
+* fetchmail_wakeup: pass cmd-specific variable name to fetchmail_wakeup()
+* fetchmail_wakeup: prepare cmd-specific variable names on init
+* fetchmail_wakeup: correct reading of numerical config values
+* fetchmail_wakeup: use str_lcase() for lower-casing
+* fetchmail_wakeup: re-factor to use less code
+
+2011-08-21 Peter Marschall <peter@adpm.de>
+* contrib/dovecot-getmail.sh: helper script by August Mayer <august.mayer@gmx.at>
+* fetchmail_wakeup: use type long long for the time difference
+
+2011-08-14 Peter Marschall <peter@adpm.de>
+* awaken-fetchmail: more detailed log messages
+
 Release 2.0.2
 =============
 

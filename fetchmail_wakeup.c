@@ -113,14 +113,26 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 	/* if a command-specific fetchmail_<CMD>_interval was passed, evaluate it */
 	fetchmail_interval = getenv_interval(client->user, interval_name, fetchmail_interval);
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, cmd->name);
+#endif
+
 	if (ratelimit(fetchmail_interval))
 		return;
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail_wakeup: rate limit passed.");
+#endif
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
 		pid_t pid;
 		int status;
 		char *const *argv;
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail wakeup: executing %s.", fetchmail_helper);
+#endif
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
@@ -145,6 +157,11 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		FILE *pidfile = fopen(fetchmail_pidfile, "r");
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
+#endif
+
 		if (pidfile) {
 			pid_t pid = 0;
 

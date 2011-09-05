@@ -1,5 +1,5 @@
-Release 2.0.3 (unreleased)
-==========================
+Release 2.0.3
+=============
 
 2011-09-05 Peter Marschall <peter@adpm.de>
 * fetchmail_wakeup: add debugging statements

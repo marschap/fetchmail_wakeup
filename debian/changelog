@@ -1,3 +1,11 @@
+dovecot-fetchmail (2.0.3-0pm2) unstable; urgency=low
+
+  * debian/postrm: fix config file name
+  * debian/prerm: new, stop dovecot before idovecot-fetchmail's removal
+  * debian/postrm: don't restart dovecot twice on upgrades
+
+ -- Peter Marschall <peter@adpm.de>  Tue, 06 Sep 2011 17:45:14 +0200
+
 dovecot-fetchmail (2.0.3-0pm1) unstable; urgency=low
 
   * new upstream release

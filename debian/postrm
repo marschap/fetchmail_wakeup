@@ -4,7 +4,7 @@
 set -e
 
 if [ "$1" = "purge" ]; then
-	CONFFILES="/etc/dovecot/conf.d/90-fetchmail_wakeupsieve.conf"
+	CONFFILES="/etc/dovecot/conf.d/90-fetchmail_wakeup.conf"
 
 	for conffile in $CONFFILES; do
 		# we mimic dpkg as closely as possible, so we remove configuration

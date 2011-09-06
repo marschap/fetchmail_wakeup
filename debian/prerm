@@ -1,0 +1,14 @@
+#!/bin/sh
+# prerm script for dovecot-fetchmail
+
+set -e
+
+if [ -x "/etc/init.d/dovecot" ]; then
+	if [ -x /usr/sbin/invoke-rc.d ] ; then
+		invoke-rc.d dovecot stop
+	else
+		/etc/init.d/dovecot stop
+	fi
+fi
+
+#DEBHELPER#

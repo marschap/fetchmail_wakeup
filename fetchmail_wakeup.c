@@ -26,7 +26,6 @@
 #include "imap-client.h"
 
 
-#define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
 #define FETCHMAIL_INTERVAL	60
 
 #define FETCHMAIL_IMAPCMD_LEN	10

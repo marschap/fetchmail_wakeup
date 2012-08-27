@@ -1,12 +1,15 @@
 # Makefile for fetchmail_wakeup
 
+
 #### configuration begin ####
 
-# package name and latest version
+
+## package name and latest version ##
 PACKAGE_NAME = dovecot-fetchmail
 #PACKAGE_VERSION = $(shell git tag | grep upstream | sort -r | head -n 1 | cut -d / -f 2)
 PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(shell git tag)))))
 
+## paths & directories ##
 # Dovecot's header directory
 DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
@@ -21,7 +24,17 @@ MAN7DIR = /usr/share/man/man7
 # fetchmail's PID file (used in awaken-fetchmail)
 FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
 
+## compile time flags/defines ##
+# uncomment to turn on debugging
+#DEBUG = 1
+
+
 ## usually no need to configure anything below this line ##
+
+# set additional flags
+ifdef DEBUG
+CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
+endif
 
 # plugin source & target name #
 PLUGIN_SOURCES = fetchmail_wakeup.c

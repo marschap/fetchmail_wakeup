@@ -32,6 +32,7 @@ FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
 ## usually no need to configure anything below this line ##
 
 # set additional flags
+CPPFLAGS += -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"'
 ifdef DEBUG
 CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
 endif
@@ -59,7 +60,7 @@ all: build
 build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
 	      -I${DOVECOT_INCDIR}/src \
@@ -71,9 +72,8 @@ ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	      $< -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -Wall \
-	      -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"' \
 	      $< -o $@
 
 %.1 : %.1.in

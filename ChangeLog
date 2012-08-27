@@ -1,3 +1,9 @@
+unreleased
+===========
+
+2012-08-27 Peter Marschall <peter@adpm.de>
+* fetchmail_wakeup: add debugging statements on init/deinit
+
 Release 2.0.3
 =============
 

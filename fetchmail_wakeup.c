@@ -228,6 +228,9 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 			if (strnlen(cmds[i].name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
 				char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+				i_debug("fetchmail wakeup: intercepting IMAP command %s.", cmds[i].name);
+#endif
 				/* build variable name */
 				i_snprintf(interval_name, sizeof(interval_name),
 					"fetchmail_%s_interval", cmds[i].name);
@@ -256,6 +259,9 @@ void fetchmail_wakeup_plugin_deinit(void)
 		command_unregister(cmds[i].name);
 		command_register(cmds[i].orig_cmd.name, cmds[i].orig_cmd.func, cmds[i].orig_cmd.flags);
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail wakeup: de-intercepting IMAP command %s.", cmds[i].name);
+#endif
 		/* free pre-built 'fetchmail_<CMD>_interval' variable name */
 		if (cmds[i].interval_name != NULL)
 			i_free_and_null(cmds[i].interval_name);

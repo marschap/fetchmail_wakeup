@@ -6,6 +6,7 @@ unreleased
 * Makefile: make debugging flag configurable
 * fetchmail_wakeup: remove unnecessary #define
 * Makefile: re-factor variables to pass to compiler
+* fetchmail_wakeup: check cmd->name before use
 
 Release 2.0.3
 =============

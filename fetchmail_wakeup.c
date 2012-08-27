@@ -188,7 +188,7 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
  */
 static bool cmd_with_fetchmail(struct client_command_context *cmd)
 {
-	if (cmd != NULL) {
+	if (cmd != NULL && cmd->name != NULL) {
 		int i;
 
 		for (i = 0; cmds[i].name != NULL; i++) {

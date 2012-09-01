@@ -1,5 +1,5 @@
-unreleased
-===========
+Release 2.1.0
+=============
 
 2012-09-01 Peter Marschall <peter@adpm.de>
 * stop support for cmd-specific intervals

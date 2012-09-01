@@ -1,3 +1,11 @@
+dovecot-fetchmail (2.1.0-0pm1) unstable; urgency=low
+
+  * new upstream release
+  * debian/coypright: update year in coypright stanzas
+  * debian/{compat,control}: update
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 01 Sep 2012 21:54:47 +0200
+
 dovecot-fetchmail (2.0.3-0pm2) unstable; urgency=low
 
   * debian/postrm: fix config file name

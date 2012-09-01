@@ -102,13 +102,6 @@ This is a 2-step process:
    - fetchmail_interval = NUMBER
      Set minimal interval between two fetchmail invocations to NUMBER seconds.
      If it is not given, the interval defaults to 60.
-   - fetchmail_idle_interval = NUMBER
-   - fetchmail_noop_interval = NUMBER
-   - fetchmail_status_interval = NUMBER
-     If defined, these variables take precedence over fetchmail_interval
-     when the corresponding IMAP command triggers the plugin.
-     By setting any of these to a very large value, you can virtually disable
-     triggering the plugin for the specific IMAP commands.
    - fetchmail_helper = COMMAND
      Execute COMMAND to either start fetchmail (or any other mail fetching tool),
      or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -127,9 +120,6 @@ This is a 2-step process:
         # minimal interval (in seconds) between two awakenings of fetchmail
         # (this setting is optional and defaults to 60)
         fetchmail_interval = 60
-        #fetchmail_idle_interval = 60
-        #fetchmail_noop_interval = 60
-        #fetchmail_status_interval = 60
 
         # a helper program to notify fetchmail accordingly
         fetchmail_helper = /usr/bin/awaken-fetchmail

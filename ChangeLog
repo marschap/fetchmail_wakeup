@@ -1,6 +1,9 @@
 unreleased
 ===========
 
+2012-09-01 Peter Marschall <peter@adpm.de>
+* stop support for cmd-specific intervals
+
 2012-08-27 Peter Marschall <peter@adpm.de>
 * fetchmail_wakeup: add debugging statements on init/deinit
 * Makefile: make debugging flag configurable

@@ -87,12 +87,6 @@ fetchmail_wakeup supports six configuration options:
 Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
 If it is not given, the interval defaults to \fB60\fP.
 .TP
-.BR fetchmail_idle_interval = \fINUMBER\fP
-.BR fetchmail_noop_interval = \fINUMBER\fP
-.BR fetchmail_status_interval = \fINUMBER\fP
-If defined, these variables take precedence over \fBfetchmail_interval\fP
-when the corresponding command triggers the plugin.
-.TP
 .BR fetchmail_helper = \fICOMMAND\fP
 Execute \fICOMMAND\fP to either start fetchmail (or any other mail fetching tool),
 or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -115,9 +109,6 @@ is ignored.
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)
     \fBfetchmail_interval\fP = 60
-    #\fBfetchmail_idle_interval\fP = 60
-    #\fBfetchmail_noop_interval\fP = 60
-    #\fBfetchmail_status_interval\fP = 60
 
     # a helper program to notify fetchmail accordingly
     \fBfetchmail_helper\fP = BINDIR/awaken-fetchmail

@@ -28,23 +28,20 @@
 
 #define FETCHMAIL_INTERVAL	60
 
-#define FETCHMAIL_IMAPCMD_LEN	10
-
 
 /* data structure for commands to be overridden */
 struct overrides {
 	const char *name;		/* the IMAPv4 command name */
-	char *interval_name;		/* "fetchmail_<cmd>_interval" variable name */
 	struct command orig_cmd;	/* copy of the original command's data structure */
 };
 
 
 /* commands that can be overridden */
 static struct overrides cmds[] = {
-	{ "IDLE",   NULL, {} },
-	{ "NOOP",   NULL, {} },
-	{ "STATUS", NULL, {} },
-	{ NULL,     NULL, {} }
+	{ "IDLE",   {} },
+	{ "NOOP",   {} },
+	{ "STATUS", {} },
+	{ NULL,     {} }
 };
 
 
@@ -97,7 +94,7 @@ static bool ratelimit(long interval)
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
-static void fetchmail_wakeup(struct client_command_context *cmd, const char *interval_name)
+static void fetchmail_wakeup(struct client_command_context *cmd)
 {
 	struct client *client = cmd->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
@@ -108,9 +105,6 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 
 	/* convert config variable "fetchmail_interval" into a number */
 	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
-
-	/* if a command-specific fetchmail_<CMD>_interval was passed, evaluate it */
-	fetchmail_interval = getenv_interval(client->user, interval_name, fetchmail_interval);
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, cmd->name);
@@ -195,7 +189,7 @@ static bool cmd_with_fetchmail(struct client_command_context *cmd)
 			if (strcasecmp(cmds[i].name, cmd->name) == 0) {
 
 				/* try to wake up fetchmail */
-				fetchmail_wakeup(cmd, cmds[i].interval_name);
+				fetchmail_wakeup(cmd);
 
 				/* daisy chaining: call original IMAPv4 command handler */
 				return ((cmds[i].orig_cmd.func != NULL)
@@ -223,22 +217,9 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 		if (orig_cmd_ptr != NULL) {
 			memcpy(&cmds[i].orig_cmd, orig_cmd_ptr, sizeof(struct command));
 
-			/* build 'fetchmail_<CMD>_interval' variable name & save it */
-			if (strnlen(cmds[i].name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
-				char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
-
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-				i_debug("fetchmail wakeup: intercepting IMAP command %s.", cmds[i].name);
+			i_debug("fetchmail wakeup: intercepting IMAP command %s.", cmds[i].name);
 #endif
-				/* build variable name */
-				i_snprintf(interval_name, sizeof(interval_name),
-					"fetchmail_%s_interval", cmds[i].name);
-				/* convert it to lowercase */
-				str_lcase(interval_name);
-
-				/* store it */
-				cmds[i].interval_name = i_strdup(interval_name);
-			}
 
 			command_unregister(cmds[i].name);
 			command_register(cmds[i].name, cmd_with_fetchmail, cmds[i].orig_cmd.flags);
@@ -261,9 +242,6 @@ void fetchmail_wakeup_plugin_deinit(void)
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
 		i_debug("fetchmail wakeup: de-intercepting IMAP command %s.", cmds[i].name);
 #endif
-		/* free pre-built 'fetchmail_<CMD>_interval' variable name */
-		if (cmds[i].interval_name != NULL)
-			i_free_and_null(cmds[i].interval_name);
 	}
 }
 

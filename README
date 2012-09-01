@@ -3,9 +3,9 @@ Fetchmail notification IMAP plugin for Dovecot
 
 Description
 -----------
-fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 & 2.0.
+fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2, 2.0 & 2.1.
 Versions 1.x are intended to be used with dovecot 1.x,
-while the 2.x versions are targetted towards dovecot 2.0.
+while the 2.x versions are targetted towards dovecot 2.x.
  
 It intercepts the IMAPv4 commands to fetch mail from the server:
 - STATUS: client polls for new mail
@@ -35,7 +35,7 @@ Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
 - original version named wake_up_fetchmail.c
 
 Copyright (C) 2009-2012 Peter Marschall <peter@adpm.de>
-- adaptions to dovecot 1.1, 1.2 & 2.0
+- adaptions to dovecot 1.1, 1.2, 2.0 & 2.1
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
 
@@ -59,6 +59,8 @@ Installation of the plugin is essentially a 3-step process:
    * MAN7DIR - directory where the plugin's manual page shall be installed
    * DOVECOT_ETCDIR - directory where dovecot.conf resides
    * FETCHMAIL_PIDFILE - fully qualified path of fetchmail's PID file
+   * DEBUG - if you want to see what's going on
+   * DOVECOT_PLUGIN_API_2_{0,1} - the plugin API to use
 
 2) Compile the module with the following command line
 
@@ -134,7 +136,7 @@ This is a 2-step process:
    in the configuration options, and thus awaken fetchmail daemons of multiple
    users with this configuration.
 
-   With dovecot 2.0, the config file can be split into small parts that
+   Starting with dovecot 2.0, the config file can be split into small parts that
    are consolidated automatically by dovecot.
    To support this mode of splitting config files, an example config snippet
    containing the "plugin" part is provided in:
@@ -149,7 +151,8 @@ fetchmail by simply fetching mail from the server in your IMAP client.
 Tests
 -----
 Original version tested with dovecot-1.0.3
-Current version tested with dovecot 1.1.13, 1.1.16, various 1.2.x versions
+Previous versions tested with dovecot 1.1.13, 1.1.16, various 1.2.x versions
+Current version tested with dovcecot 2.1.7
 
 
 GIT archive structure

@@ -94,9 +94,9 @@ static bool ratelimit(long interval)
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
-static void fetchmail_wakeup(struct client_command_context *cmd)
+static void fetchmail_wakeup(struct client_command_context *ctx)
 {
-	struct client *client = cmd->client;
+	struct client *client = ctx->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
 
 	/* read config variables depending on the session */
@@ -107,7 +107,7 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, cmd->name);
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
 #endif
 
 	if (ratelimit(fetchmail_interval))
@@ -180,20 +180,20 @@ static void fetchmail_wakeup(struct client_command_context *cmd)
 /*
  * Our IMAPv4 command wrapper that calls fetchmail_wakeup
  */
-static bool cmd_with_fetchmail(struct client_command_context *cmd)
+static bool cmd_with_fetchmail(struct client_command_context *ctx)
 {
-	if (cmd != NULL && cmd->name != NULL) {
+	if (ctx != NULL && ctx->name != NULL) {
 		int i;
 
 		for (i = 0; cmds[i].name != NULL; i++) {
-			if (strcasecmp(cmds[i].name, cmd->name) == 0) {
+			if (strcasecmp(cmds[i].name, ctx->name) == 0) {
 
 				/* try to wake up fetchmail */
-				fetchmail_wakeup(cmd);
+				fetchmail_wakeup(ctx);
 
 				/* daisy chaining: call original IMAPv4 command handler */
 				return ((cmds[i].orig_cmd.func != NULL)
-					? cmds[i].orig_cmd.func(cmd)
+					? cmds[i].orig_cmd.func(ctx)
 					: FALSE);
 			}
 		}

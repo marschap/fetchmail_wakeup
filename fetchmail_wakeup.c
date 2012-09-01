@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
  * - original version named wake_up_fetchmail.c
  *
- * Copyright (C) 2009-2011 Peter Marschall <peter@adpm.de>
+ * Copyright (C) 2009-2012 Peter Marschall <peter@adpm.de>
  * - adaptions to dovecot 1.1, 1.2 & 2.0
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
@@ -26,26 +26,36 @@
 #include "imap-client.h"
 
 
-#define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
-#define FETCHMAIL_INTERVAL	60
+/* make sure only one API version is defined (prefer higher ones) */
+#if defined(DOVECOT_PLUGIN_API_2_1)
+#  undef   DOVECOT_PLUGIN_API_2_0
+typedef    void   handler_t;
+#elif defined(DOVECOT_PLUGIN_API_2_0)
+#  warning "======== Using Dovecot 2.0 plugin API ========"
+typedef    bool  handler_t;
+#else
+#  define  DOVECOT_PLUGIN_API_2_1
+#  warning "======== Defaulting to Dovecot 2.1 plugin API ========"
+typedef    void   handler_t;
+#endif
 
-#define FETCHMAIL_IMAPCMD_LEN	10
+
+#define FETCHMAIL_INTERVAL	60
 
 
 /* data structure for commands to be overridden */
 struct overrides {
 	const char *name;		/* the IMAPv4 command name */
-	char *interval_name;		/* "fetchmail_<cmd>_interval" variable name */
 	struct command orig_cmd;	/* copy of the original command's data structure */
 };
 
 
 /* commands that can be overridden */
 static struct overrides cmds[] = {
-	{ "IDLE",   NULL, {} },
-	{ "NOOP",   NULL, {} },
-	{ "STATUS", NULL, {} },
-	{ NULL,     NULL, {} }
+	{ "IDLE",   {} },
+	{ "NOOP",   {} },
+	{ "STATUS", {} },
+	{ NULL,     {} }
 };
 
 
@@ -98,9 +108,9 @@ static bool ratelimit(long interval)
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
-static void fetchmail_wakeup(struct client_command_context *cmd, const char *interval_name)
+static void fetchmail_wakeup(struct client_command_context *ctx)
 {
-	struct client *client = cmd->client;
+	struct client *client = ctx->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
 
 	/* read config variables depending on the session */
@@ -110,11 +120,8 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 	/* convert config variable "fetchmail_interval" into a number */
 	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
-	/* if a command-specific fetchmail_<CMD>_interval was passed, evaluate it */
-	fetchmail_interval = getenv_interval(client->user, interval_name, fetchmail_interval);
-
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, cmd->name);
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
 #endif
 
 	if (ratelimit(fetchmail_interval))
@@ -185,36 +192,56 @@ static void fetchmail_wakeup(struct client_command_context *cmd, const char *int
 
 
 /*
- * Our IMAPv4 command wrapper that calls fetchmail_wakeup
+ * IMAPv4 command wrapper / pre-command hook callback:
+ * - Dovecot 2.0: call fetchmail_wakeup & daisy-chain to the IMAP function call
+ * - Dovecot 2.1: simply call fetchmail_wakeup, as Dovecot 2.1 has command hooks
  */
-static bool cmd_with_fetchmail(struct client_command_context *cmd)
+handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
-	if (cmd != NULL) {
+	if (ctx != NULL && ctx->name != NULL) {
 		int i;
 
 		for (i = 0; cmds[i].name != NULL; i++) {
-			if (strcasecmp(cmds[i].name, cmd->name) == 0) {
+			if (strcasecmp(cmds[i].name, ctx->name) == 0) {
 
 				/* try to wake up fetchmail */
-				fetchmail_wakeup(cmd, cmds[i].interval_name);
+				fetchmail_wakeup(ctx);
 
+#if defined(DOVECOT_PLUGIN_API_2_0)
 				/* daisy chaining: call original IMAPv4 command handler */
 				return ((cmds[i].orig_cmd.func != NULL)
-					? cmds[i].orig_cmd.func(cmd)
+					? cmds[i].orig_cmd.func(ctx)
 					: FALSE);
+#endif
 			}
 		}
 	}
+#if defined(DOVECOT_PLUGIN_API_2_0)
 	return FALSE;
+#endif
 }
 
 
 /*
- * Plugin init: remember dovecot's original IMAPv4 handler functions and add our own
- * in place
+ * IMAPv4 post-command hook callback:
+ * - Dovecot 2.1 (only): required (the hook handlers don't check for NULL), but not used
+ */
+handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
+{
+        /* unused */
+}
+
+
+/*
+ * Plugin init:
+ * - Dovecot 2.0: store original IMAPv4 handler functions and replace it with my own
+ * - Dovecot 2.1: register callback functions into the into command hook chain
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
+#if defined(DOVECOT_PLUGIN_API_2_1)
+	command_hook_register(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
+#elif defined(DOVECOT_PLUGIN_API_2_0)
 	int i;
 
 	/* replace IMAPv4 command handlers by our own */
@@ -224,42 +251,39 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 		if (orig_cmd_ptr != NULL) {
 			memcpy(&cmds[i].orig_cmd, orig_cmd_ptr, sizeof(struct command));
 
-			/* build 'fetchmail_<CMD>_interval' variable name & save it */
-			if (strnlen(cmds[i].name, FETCHMAIL_IMAPCMD_LEN) < FETCHMAIL_IMAPCMD_LEN) {
-				char interval_name[sizeof("fetchmail_%s_interval")+FETCHMAIL_IMAPCMD_LEN];
-
-				/* build variable name */
-				i_snprintf(interval_name, sizeof(interval_name),
-					"fetchmail_%s_interval", cmds[i].name);
-				/* convert it to lowercase */
-				str_lcase(interval_name);
-
-				/* store it */
-				cmds[i].interval_name = i_strdup(interval_name);
-			}
-
 			command_unregister(cmds[i].name);
-			command_register(cmds[i].name, cmd_with_fetchmail, cmds[i].orig_cmd.flags);
+			command_register(cmds[i].name, fetchmail_wakeup_cmd, cmds[i].orig_cmd.flags);
 		}
 	}
+#endif
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail wakeup: intercepting IMAP commands.");
+#endif
 }
 
 /*
- * Plugin deinit: restore dovecot's original IMAPv4 handler functions
+ * Plugin deinit:
+ * - Dovecot 2.0: restore dovecot's original IMAPv4 handler functions
+ * - Dovecot 2.1: un-register previously registered callback functions
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
+#if defined(DOVECOT_PLUGIN_API_2_1)
+	command_hook_unregister(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
+#elif defined(DOVECOT_PLUGIN_API_2_0)
 	int i;
 
 	/* restore previous IMAPv4 command handlers */
 	for (i = 0; cmds[i].name != NULL; i++) {
 		command_unregister(cmds[i].name);
 		command_register(cmds[i].orig_cmd.name, cmds[i].orig_cmd.func, cmds[i].orig_cmd.flags);
-
-		/* free pre-built 'fetchmail_<CMD>_interval' variable name */
-		if (cmds[i].interval_name != NULL)
-			i_free_and_null(cmds[i].interval_name);
 	}
+#endif
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail wakeup: de-intercepting IMAP command %s.");
+#endif
 }
 
 

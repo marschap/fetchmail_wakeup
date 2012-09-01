@@ -1,12 +1,15 @@
 # Makefile for fetchmail_wakeup
 
+
 #### configuration begin ####
 
-# package name and latest version
+
+## package name and latest version ##
 PACKAGE_NAME = dovecot-fetchmail
 #PACKAGE_VERSION = $(shell git tag | grep upstream | sort -r | head -n 1 | cut -d / -f 2)
 PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(shell git tag)))))
 
+## paths & directories ##
 # Dovecot's header directory
 DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
@@ -21,7 +24,27 @@ MAN7DIR = /usr/share/man/man7
 # fetchmail's PID file (used in awaken-fetchmail)
 FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
 
+## compile time flags/defines ##
+# uncomment to turn on debugging
+#DEBUG = 1
+
+# uncomment the one matching your Dovecot version
+#DOVECOT_PLUGIN_API_2_1 = 1
+#DOVECOT_PLUGIN_API_2_0 = 1
+
+
 ## usually no need to configure anything below this line ##
+
+# set additional flags
+CPPFLAGS += -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"'
+ifdef DEBUG
+CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
+endif
+ifdef DOVECOT_PLUGIN_API_2_1
+CPPFLAGS += -DDOVECOT_PLUGIN_API_2_1
+else ifdef DOVECOT_PLUGIN_API_2_0
+CPPFLAGS += -DDOVECOT_PLUGIN_API_2_0
+endif
 
 # plugin source & target name #
 PLUGIN_SOURCES = fetchmail_wakeup.c
@@ -46,7 +69,7 @@ all: build
 build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
 	      -I${DOVECOT_INCDIR}/src \
@@ -58,9 +81,8 @@ ${PLUGIN_NAME}: ${PLUGIN_SOURCES}
 	      $< -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) \
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -Wall \
-	      -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"' \
 	      $< -o $@
 
 %.1 : %.1.in

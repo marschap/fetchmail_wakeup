@@ -55,6 +55,7 @@ static struct overrides cmds[] = {
 	{ "IDLE",   {} },
 	{ "NOOP",   {} },
 	{ "STATUS", {} },
+	{ "NOTIFY", {} },
 	{ NULL,     {} }
 };
 

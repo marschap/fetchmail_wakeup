@@ -1,3 +1,9 @@
+unreleased 
+==========
+
+2013-19-09 Peter Marschall <peter@adpm.de>
+* include NOTIFY into the list of triggering IMAP commands
+
 Release 2.1.0
 =============
 

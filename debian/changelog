@@ -1,3 +1,11 @@
+dovecot-fetchmail (2.1.1-0pm1) unstable; urgency=medium
+
+  * new upstream release
+  * debian/control: mention NOTIFY
+  * debian/coypright: update year in coypright stanzas
+
+ -- Peter Marschall <peter@adpm.de>  Tue, 24 Dec 2013 19:02:50 +0100
+
 dovecot-fetchmail (2.1.0-0pm1) unstable; urgency=low
 
   * new upstream release

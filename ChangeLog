@@ -1,3 +1,16 @@
+Release 2.1.1
+=============
+
+2013-12-24 Peter Marschall <peter@adpm.de>
+* clarify that dovecot 2.2 is supported too
+* fetchmail_wakeup: fix bug in i_debug() arguments
+* fetchmail_wakeup: make all handler_t functions static
+* fetchmail_wakeup: make sure client->user is defined
+* fetchmail_wakeup: stop looping when command was found
+
+2013-19-09 Peter Marschall <peter@adpm.de>
+* include NOTIFY into the list of triggering IMAP commands
+
 Release 2.1.0
 =============
 

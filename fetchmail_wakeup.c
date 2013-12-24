@@ -4,8 +4,8 @@
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
  * - original version named wake_up_fetchmail.c
  *
- * Copyright (C) 2009-2012 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1, 1.2 & 2.0
+ * Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
+ * - adaptions to dovecot 1.1, 1.2 [now deprecated], 2.0, 2.1 & 2.2
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *
@@ -35,7 +35,7 @@ typedef    void   handler_t;
 typedef    bool  handler_t;
 #else
 #  define  DOVECOT_PLUGIN_API_2_1
-#  warning "======== Defaulting to Dovecot 2.1 plugin API ========"
+#  warning "======== Defaulting to Dovecot 2.1+ plugin API ========"
 typedef    void   handler_t;
 #endif
 
@@ -55,6 +55,7 @@ static struct overrides cmds[] = {
 	{ "IDLE",   {} },
 	{ "NOOP",   {} },
 	{ "STATUS", {} },
+	{ "NOTIFY", {} },
 	{ NULL,     {} }
 };
 
@@ -112,6 +113,10 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct client *client = ctx->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
+
+	/* make sure client->user is defined */
+	if (client == NULL || client->user == NULL)
+		return;
 
 	/* read config variables depending on the session */
 	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
@@ -194,15 +199,19 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 /*
  * IMAPv4 command wrapper / pre-command hook callback:
  * - Dovecot 2.0: call fetchmail_wakeup & daisy-chain to the IMAP function call
- * - Dovecot 2.1: simply call fetchmail_wakeup, as Dovecot 2.1 has command hooks
+ * - Dovecot 2.1+: simply call fetchmail_wakeup, as Dovecot 2.1+ has command hooks
  */
-handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
+static handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
 	if (ctx != NULL && ctx->name != NULL) {
 		int i;
 
 		for (i = 0; cmds[i].name != NULL; i++) {
 			if (strcasecmp(cmds[i].name, ctx->name) == 0) {
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+				i_debug("fetchmail wakeup: intercepting %s.", cmds[i].name);
+#endif
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);
@@ -212,6 +221,8 @@ handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 				return ((cmds[i].orig_cmd.func != NULL)
 					? cmds[i].orig_cmd.func(ctx)
 					: FALSE);
+#else
+				break;
 #endif
 			}
 		}
@@ -224,9 +235,9 @@ handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 /*
  * IMAPv4 post-command hook callback:
- * - Dovecot 2.1 (only): required (the hook handlers don't check for NULL), but not used
+ * - Dovecot 2.1+ (only): required (the hook handlers don't check for NULL), but not used
  */
-handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
+static handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
 {
         /* unused */
 }
@@ -235,7 +246,7 @@ handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
 /*
  * Plugin init:
  * - Dovecot 2.0: store original IMAPv4 handler functions and replace it with my own
- * - Dovecot 2.1: register callback functions into the into command hook chain
+ * - Dovecot 2.1+: register callback functions into the into command hook chain
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
@@ -258,14 +269,14 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 #endif
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail wakeup: intercepting IMAP commands.");
+	i_debug("fetchmail wakeup: start intercepting IMAP commands.");
 #endif
 }
 
 /*
  * Plugin deinit:
  * - Dovecot 2.0: restore dovecot's original IMAPv4 handler functions
- * - Dovecot 2.1: un-register previously registered callback functions
+ * - Dovecot 2.1+: un-register previously registered callback functions
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
@@ -282,7 +293,7 @@ void fetchmail_wakeup_plugin_deinit(void)
 #endif
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail wakeup: de-intercepting IMAP command %s.");
+	i_debug("fetchmail wakeup: stop intercepting IMAP commands.");
 #endif
 }
 

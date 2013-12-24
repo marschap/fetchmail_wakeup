@@ -2,6 +2,7 @@ unreleased
 ==========
 
 2013-12-24 Peter Marschall <peter@adpm.de>
+* clarify that dovecot 2.2 is supported too
 * fetchmail_wakeup: fix bug in i_debug() arguments
 * fetchmail_wakeup: make all handler_t functions static
 * fetchmail_wakeup: make sure client->user is defined

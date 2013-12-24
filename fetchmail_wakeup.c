@@ -5,7 +5,7 @@
  * - original version named wake_up_fetchmail.c
  *
  * Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1, 1.2 & 2.0
+ * - adaptions to dovecot 1.1, 1.2 [now deprecated], 2.0, 2.1 & 2.2
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *
@@ -35,7 +35,7 @@ typedef    void   handler_t;
 typedef    bool  handler_t;
 #else
 #  define  DOVECOT_PLUGIN_API_2_1
-#  warning "======== Defaulting to Dovecot 2.1 plugin API ========"
+#  warning "======== Defaulting to Dovecot 2.1+ plugin API ========"
 typedef    void   handler_t;
 #endif
 
@@ -199,7 +199,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 /*
  * IMAPv4 command wrapper / pre-command hook callback:
  * - Dovecot 2.0: call fetchmail_wakeup & daisy-chain to the IMAP function call
- * - Dovecot 2.1: simply call fetchmail_wakeup, as Dovecot 2.1 has command hooks
+ * - Dovecot 2.1+: simply call fetchmail_wakeup, as Dovecot 2.1+ has command hooks
  */
 static handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
@@ -235,7 +235,7 @@ static handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 /*
  * IMAPv4 post-command hook callback:
- * - Dovecot 2.1 (only): required (the hook handlers don't check for NULL), but not used
+ * - Dovecot 2.1+ (only): required (the hook handlers don't check for NULL), but not used
  */
 static handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
 {
@@ -246,7 +246,7 @@ static handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
 /*
  * Plugin init:
  * - Dovecot 2.0: store original IMAPv4 handler functions and replace it with my own
- * - Dovecot 2.1: register callback functions into the into command hook chain
+ * - Dovecot 2.1+: register callback functions into the into command hook chain
  */
 void fetchmail_wakeup_plugin_init(struct module *module)
 {
@@ -276,7 +276,7 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 /*
  * Plugin deinit:
  * - Dovecot 2.0: restore dovecot's original IMAPv4 handler functions
- * - Dovecot 2.1: un-register previously registered callback functions
+ * - Dovecot 2.1+: un-register previously registered callback functions
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {

@@ -3,7 +3,7 @@ Fetchmail notification IMAP plugin for Dovecot
 
 Description
 -----------
-fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2, 2.0 & 2.1.
+fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2, 2.0, 2.1 & 2.2
 Versions 1.x are intended to be used with dovecot 1.x,
 while the 2.x versions are targetted towards dovecot 2.x.
  
@@ -11,6 +11,7 @@ It intercepts the IMAPv4 commands to fetch mail from the server:
 - STATUS: client polls for new mail
 - IDLE:   client tells server to push new mail
 - NOOP:   client allows server to notify on new mail
+- NOTIFY: client tells server to inform on specific events
 and tries to wake up a running fetchmail daemon before performing
 the command.
 
@@ -35,7 +36,7 @@ Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
 - original version named wake_up_fetchmail.c
 
 Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
-- adaptions to dovecot 1.1, 1.2, 2.0 & 2.1
+- adaptions to dovecot 1.1, 1.2, 2.0, 2.1 & 2.2
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
 
@@ -151,8 +152,8 @@ fetchmail by simply fetching mail from the server in your IMAP client.
 Tests
 -----
 Original version tested with dovecot-1.0.3
-Previous versions tested with dovecot 1.1.13, 1.1.16, various 1.2.x versions
-Current version tested with dovcecot 2.1.7
+Previous versions tested with dovecot 1.1.13, 1.1.16, various 1.2.x, 2.0.x, 2.1.x versions
+Current version tested with dovcecot 2.2.9
 
 
 GIT archive structure

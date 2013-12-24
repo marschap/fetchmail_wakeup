@@ -12,13 +12,13 @@ Upstream Author:
 Files: fetchmail_wakeup.c
 Copyright:
  Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
- Copyright (C) 2009-2012 Peter Marschall <peter@adpm.de>
+ Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
 License: LGPL-2.1
  On Debian systems, the complete text of the GNU Lesser General Public
  License can be found in the file `/usr/share/common-licenses/LGPL-2.1'.
 
 Files: awaken-fetchmail.c debian/*
- Copyright (C) 2009-2012 Peter Marschall <peter@adpm.de>
+ Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
 License: GPL-2
  On Debian systems, the complete text of the GNU General Public
  License can be found in the file `/usr/share/common-licenses/GPL-2'.

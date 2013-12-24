@@ -1,5 +1,5 @@
-unreleased 
-==========
+Release 2.1.1
+=============
 
 2013-12-24 Peter Marschall <peter@adpm.de>
 * clarify that dovecot 2.2 is supported too

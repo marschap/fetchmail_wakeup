@@ -114,6 +114,10 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	struct client *client = ctx->client;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
 
+	/* make sure client->user is defined */
+	if (client == NULL || client->user == NULL)
+		return;
+
 	/* read config variables depending on the session */
 	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
 	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");

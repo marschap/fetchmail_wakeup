@@ -201,7 +201,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
  * - Dovecot 2.0: call fetchmail_wakeup & daisy-chain to the IMAP function call
  * - Dovecot 2.1: simply call fetchmail_wakeup, as Dovecot 2.1 has command hooks
  */
-handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
+static handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
 	if (ctx != NULL && ctx->name != NULL) {
 		int i;
@@ -233,7 +233,7 @@ handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
  * IMAPv4 post-command hook callback:
  * - Dovecot 2.1 (only): required (the hook handlers don't check for NULL), but not used
  */
-handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
+static handler_t fetchmail_wakeup_null(struct client_command_context *ctx)
 {
         /* unused */
 }

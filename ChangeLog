@@ -1,6 +1,9 @@
 unreleased 
 ==========
 
+2013-12-24 Peter Marschall <peter@adpm.de>
+* fetchmail_wakeup: stop looping when command was found
+
 2013-19-09 Peter Marschall <peter@adpm.de>
 * include NOTIFY into the list of triggering IMAP commands
 

@@ -213,6 +213,8 @@ handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 				return ((cmds[i].orig_cmd.func != NULL)
 					? cmds[i].orig_cmd.func(ctx)
 					: FALSE);
+#else
+				break;
 #endif
 			}
 		}

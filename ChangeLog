@@ -1,3 +1,9 @@
+Release 2.2.0
+=============
+
+2016-10-26 Bernhard Bablok (mail@bablokb.de)
+* re-introduce per command interval configuration variables
+
 Release 2.1.1
 =============
 

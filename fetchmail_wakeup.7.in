@@ -1,5 +1,6 @@
 .\" manual page for fetchmail_wakeup
 .\" Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
+.\" Copyright (C) 2016-2016 Bernhard Bablok (mail@bablokb.de>
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH FETCHMAIL_WAKEUP 7 "21 May 2011" "" "Dovecot Plugins"
+.TH FETCHMAIL_WAKEUP 7 "21 May 2016" "" "Dovecot Plugins"
 
 .SH NAME
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
@@ -81,11 +82,27 @@ extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
 Then, set the plugin's configuration options.
 This is done in dovecot.conf's \fBplugin\fP section.
 
-fetchmail_wakeup supports six configuration options:
+fetchmail_wakeup supports nine configuration options:
 .TP
 .BR fetchmail_interval = \fINUMBER\fP
-Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
+Set global minimal interval between two fetchmail invocations
+to \fINUMBER\fP seconds.
 If it is not given, the interval defaults to \fB60\fP.
+.TP
+.BR fetchmail_interval_STATUS = \fINUMBER\fP
+Set minimal interval between two fetchmail invocations for STATUS
+to \fINUMBER\fP seconds.
+If it is not given, the interval defaults to \fBfetchmail_interval\fP.
+.TP
+.BR fetchmail_interval_IDLE = \fINUMBER\fP
+Set minimal interval between two fetchmail invocations for IDLE
+to \fINUMBER\fP seconds.
+If it is not given, the interval defaults to \fBfetchmail_interval\fP.
+.TP
+.BR fetchmail_interval_NOOP = \fINUMBER\fP
+Set minimal interval between two fetchmail invocations for NOOP
+to \fINUMBER\fP seconds.
+If it is not given, the interval defaults to \fBfetchmail_interval\fP.
 .TP
 .BR fetchmail_helper = \fICOMMAND\fP
 Execute \fICOMMAND\fP to either start fetchmail (or any other mail fetching tool),

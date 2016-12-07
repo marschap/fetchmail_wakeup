@@ -82,9 +82,9 @@ Shortcut Installation for Raspbian
 ----------------------------------
 
 Raspbian users will find a precompiled version of the plugin in the
-directory `contrib/release-arm`. The plugin was compiled running Raspbian Jessie
-and should also work on other armhf-platforms. Just copy the plugin-file
-to the directory `/usr/lib/dovecot/modules/`. A sample configuration-file
+directory `contrib/release-raspbian`. The plugin was compiled running
+Raspbian Jessie. Just copy the plugin-file to the directory
+`/usr/lib/dovecot/modules/`. A sample configuration-file
 is in `example-config/conf.d/90-fetchmail_wakeup.conf` und should go
 into `/etc/dovecot/conf.d/`.
 

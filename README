@@ -40,6 +40,8 @@ Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
 
+Copyright (C) 2016-2016 Bernhard Bablok <mail@bablokb.de>
+- re-introduced per command rate-limits
 
 License
 -------
@@ -76,6 +78,17 @@ Installation of the plugin is essentially a 3-step process:
 That's it.
 
 
+Shortcut Installation for Raspbian
+----------------------------------
+
+Raspbian users will find a precompiled version of the plugin in the
+directory `contrib/release-raspbian`. The plugin was compiled running
+Raspbian Jessie. Just copy the plugin-file to the directory
+`/usr/lib/dovecot/modules/`. A sample configuration-file
+is in `example-config/conf.d/90-fetchmail_wakeup.conf` und should go
+into `/etc/dovecot/conf.d/`.
+
+
 Configuration
 -------------
 After the plugin library is installed and ready to be used, Dovecot's
@@ -103,8 +116,13 @@ This is a 2-step process:
 
    fetchmail_wakeup supports six configuration options:
    - fetchmail_interval = NUMBER
-     Set minimal interval between two fetchmail invocations to NUMBER seconds.
+     Set global minimal interval between two fetchmail invocations
+     to NUMBER seconds.
      If it is not given, the interval defaults to 60.
+   - fetchmail_interval_COMMAND = NUMBER
+     Set minimal interval between two fetchmail invocations
+     for COMMAND to NUMBER seconds.
+     If it is not given, the interval defaults to the global fetchmail_interval.
    - fetchmail_helper = COMMAND
      Execute COMMAND to either start fetchmail (or any other mail fetching tool),
      or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -123,6 +141,7 @@ This is a 2-step process:
         # minimal interval (in seconds) between two awakenings of fetchmail
         # (this setting is optional and defaults to 60)
         fetchmail_interval = 60
+        fetchmail_interval_NOOP = 600
 
         # a helper program to notify fetchmail accordingly
         fetchmail_helper = /usr/bin/awaken-fetchmail

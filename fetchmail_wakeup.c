@@ -45,20 +45,33 @@ typedef    void   handler_t;
 
 /* data structure for commands to be overridden */
 struct overrides {
-	const char *name;		/* the IMAPv4 command name */
-	struct command orig_cmd;	/* copy of the original command's data structure */
+  const char *name;		/* the IMAPv4 command name */
+  struct command orig_cmd;	/* copy of the original command's data structure */
+  struct timeval last;          /* last time this command was executed */
 };
 
 
 /* commands that can be overridden */
 static struct overrides cmds[] = {
-	{ "IDLE",   {} },
-	{ "NOOP",   {} },
-	{ "STATUS", {} },
-	{ "NOTIFY", {} },
-	{ NULL,     {} }
+  { "IDLE",   {}, {} },
+  { "NOOP",   {}, {} },
+  { "STATUS", {}, {} },
+  { "NOTIFY", {}, {} },
+  { NULL,     {}, {} }
 };
 
+
+/* get the index of the given command in cmds[] */
+
+static int get_cmd_index(const char* name) {
+  int i=0;
+  for (i = 0; cmds[i].name != NULL; i++) {
+    if (strcasecmp(cmds[i].name,name) == 0) {
+      return i;
+    }
+  }
+  return i;
+}
 
 /*
  * Get a interval value from config and parse it into a number (with fallback for failures)
@@ -86,22 +99,24 @@ static long getenv_interval(struct mail_user *user, const char *name, long fallb
 /*
  * Don't bother waking up fetchmail too often
  */
-static bool ratelimit(long interval)
+static bool ratelimit(long interval, const char* name)
 {
-	static struct timeval last_one;
+	struct timeval last_one;
 	struct timeval now;
+        int cmd_index;
 	long long millisec_delta;
 
 	if (gettimeofday(&now, NULL))
 		return FALSE;
 
+        cmd_index = get_cmd_index(name);
+        last_one = cmds[cmd_index].last;
 	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
 	                  now.tv_usec - last_one.tv_usec) / 1000LL;
 	if (millisec_delta > interval * 1000LL) {
-		last_one = now;
+		cmds[cmd_index].last = now;
 		return FALSE;
 	}
-
 	return TRUE;
 }
 
@@ -112,7 +127,8 @@ static bool ratelimit(long interval)
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct client *client = ctx->client;
-	long fetchmail_interval = FETCHMAIL_INTERVAL;
+	long interval, fetchmail_interval = FETCHMAIL_INTERVAL;
+        char cfg_var[28];
 
 	/* make sure client->user is defined */
 	if (client == NULL || client->user == NULL)
@@ -125,12 +141,17 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	/* convert config variable "fetchmail_interval" into a number */
 	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
+        /* query per command interval setting */
+        strcpy(cfg_var,"fetchmail_interval_");
+        strncat(cfg_var,ctx->name,6);
+        interval = getenv_interval(client->user,cfg_var,fetchmail_interval);
+        
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
+	i_debug("fetchmail_wakeup: interval %ld used for %s.",interval, ctx->name);
 #endif
-
-	if (ratelimit(fetchmail_interval))
-		return;
+        /* limit rate */
+        if (ratelimit(interval,ctx->name))
+          return;
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: rate limit passed.");

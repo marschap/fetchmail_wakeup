@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
  * - original version named wake_up_fetchmail.c
  *
- * Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
+ * Copyright (C) 2009-2013,2021 Peter Marschall <peter@adpm.de>
  * - adaptions to dovecot 1.1, 1.2 [now deprecated], 2.0, 2.1 & 2.2
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
@@ -125,12 +125,16 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	/* convert config variable "fetchmail_interval" into a number */
 	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
+#endif
 
 	if (ratelimit(fetchmail_interval))
 		return;
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: rate limit passed.");
+#endif
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
@@ -138,7 +142,9 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		int status;
 		char *const *argv;
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 		i_debug("fetchmail wakeup: executing %s.", fetchmail_helper);
+#endif
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
@@ -164,7 +170,9 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		FILE *pidfile = fopen(fetchmail_pidfile, "r");
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 		i_debug("fetchmail wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
+#endif
 
 		if (pidfile) {
 			pid_t pid = 0;
@@ -201,7 +209,9 @@ static handler_t fetchmail_wakeup_cmd(struct client_command_context *ctx)
 		for (i = 0; cmds[i].name != NULL; i++) {
 			if (strcasecmp(cmds[i].name, ctx->name) == 0) {
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 				i_debug("fetchmail wakeup: intercepting %s.", cmds[i].name);
+#endif
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);
@@ -258,7 +268,9 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 	}
 #endif
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail wakeup: start intercepting IMAP commands.");
+#endif
 }
 
 /*
@@ -280,7 +292,9 @@ void fetchmail_wakeup_plugin_deinit(void)
 	}
 #endif
 
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail wakeup: stop intercepting IMAP commands.");
+#endif
 }
 
 

@@ -1,3 +1,15 @@
+dovecot-fetchmail (2.1.2-0pm1) unstable; urgency=medium
+
+  * debian/copyright: update year in coypright stanza
+  * debian/gpb.conf: rename section [git-dch] to [dch]
+  * debian/source/format: new
+  * debian/control: modernize
+  * debian/compat: remove
+  * debian/rules, debian/install: use descriptive installation
+  * debian/rules: use dh command sequencer
+
+ -- Peter Marschall <peter@adpm.de>  Sun, 05 Dec 2021 21:18:17 +0100
+
 dovecot-fetchmail (2.1.1-0pm1) unstable; urgency=medium
 
   * new upstream release

@@ -25,9 +25,6 @@ MAN7DIR = /usr/share/man/man7
 FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
 
 ## compile time flags/defines ##
-# uncomment to turn on debugging
-#DEBUG = 1
-
 # uncomment the one matching your Dovecot version
 #DOVECOT_PLUGIN_API_2_1 = 1
 #DOVECOT_PLUGIN_API_2_0 = 1
@@ -37,9 +34,6 @@ FETCHMAIL_PIDFILE = /var/run/fetchmail/fetchmail.pid
 
 # set additional flags
 CPPFLAGS += -D'FETCHMAIL_PIDFILE="${FETCHMAIL_PIDFILE}"'
-ifdef DEBUG
-CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
-endif
 ifdef DOVECOT_PLUGIN_API_2_1
 CPPFLAGS += -DDOVECOT_PLUGIN_API_2_1
 else ifdef DOVECOT_PLUGIN_API_2_0

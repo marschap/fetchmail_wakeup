@@ -1,3 +1,12 @@
+Release 2.2.0
+=============
+
+2022-05-28 Peter Marschall <peter@adpm.de>
+* consistently document intercepted commands
+* remove compatibility with dovecot < 2.1
+* use /run instead of /var/run for FETCHMAIL_PIDFILE
+* be more verbose while running
+
 Release 2.1.1
 =============
 

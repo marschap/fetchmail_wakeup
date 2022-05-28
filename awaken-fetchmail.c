@@ -1,7 +1,7 @@
 /*
  * awaken-fetchmail: send SIGUSR1 to a fetchmail daemon in order to wake it
  *
- * Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
+ * Copyright (C) 2009-2022 Peter Marschall <peter@adpm.de>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License (version 2 or higher)
@@ -33,7 +33,7 @@
 
 
 #if !defined(FETCHMAIL_PIDFILE)
-#  define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
+#  define FETCHMAIL_PIDFILE	"/run/fetchmail/fetchmail.pid"
 #endif
 
 

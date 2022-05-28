@@ -1,5 +1,5 @@
 .\" manual page for fetchmail_wakeup
-.\" Copyright (C) 2009-2013 Peter Marschall <peter@adpm.de>
+.\" Copyright (C) 2009-2022 Peter Marschall <peter@adpm.de>
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -15,15 +15,13 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH FETCHMAIL_WAKEUP 7 "21 May 2011" "" "Dovecot Plugins"
+.TH FETCHMAIL_WAKEUP 7 "28 May 2022" "" "Dovecot Plugins"
 
 .SH NAME
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
 
 .SH DESCRIPTION
-fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 & 2.0.
-Versions 1.1.x are intended to be used with dovecot 1.x,
-while version 2.x are targetted towards Dovecot 2.0.
+fetchmail_wakeup is a plugin for Dovecot 2.1+
 .PP
 It intercepts the following IMAPv4 commands to fetch mail from the server:
 .TP
@@ -34,7 +32,10 @@ client polling for new mail
 client telling the server to push new mail
 .TP
 .B NOOP
-client allows server to notify on new mail
+client allowing server to notify on new mail
+.TP
+.B NOTIFY
+client telling server to inform on specific events
 .PP
 and tries to wake up a running fetchmail daemon before performing
 the command.
@@ -104,7 +105,7 @@ is ignored.
 \fBplugin\fP {
     ...
 
-    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, & STATUS commands
+    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, NOTIFY & STATUS commands
 
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)

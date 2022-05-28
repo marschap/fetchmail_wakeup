@@ -137,9 +137,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		int status;
 		char *const *argv;
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-		i_debug("fetchmail wakeup: executing %s.", fetchmail_helper);
-#endif
+		i_info("fetchmail_wakeup: executing helper %s.", fetchmail_helper);
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
@@ -165,9 +163,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		FILE *pidfile = fopen(fetchmail_pidfile, "r");
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-		i_debug("fetchmail wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
-#endif
+		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
 
 		if (pidfile) {
 			pid_t pid = 0;
@@ -203,9 +199,7 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 		for (i = 0; cmds[i] != NULL; i++) {
 			if (strcasecmp(cmds[i], ctx->name) == 0) {
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-				i_debug("fetchmail wakeup: intercepting %s.", cmds[i]);
-#endif
+				i_info("fetchmail_wakeup: intercepting %s.", cmds[i]);
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);
@@ -234,9 +228,7 @@ void fetchmail_wakeup_plugin_init(struct module *module)
 {
 	command_hook_register(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail wakeup: start intercepting IMAP commands.");
-#endif
+	i_info("fetchmail_wakeup: start intercepting IMAP commands.");
 }
 
 /*
@@ -246,9 +238,7 @@ void fetchmail_wakeup_plugin_deinit(void)
 {
 	command_hook_unregister(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail wakeup: stop intercepting IMAP commands.");
-#endif
+	i_info("fetchmail_wakeup: stop intercepting IMAP commands.");
 }
 
 

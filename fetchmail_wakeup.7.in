@@ -15,7 +15,7 @@
 .\" with this program; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 .\"
-.TH FETCHMAIL_WAKEUP 7 "21 May 2011" "" "Dovecot Plugins"
+.TH FETCHMAIL_WAKEUP 7 "28 May 2022" "" "Dovecot Plugins"
 
 .SH NAME
 fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
@@ -34,7 +34,10 @@ client polling for new mail
 client telling the server to push new mail
 .TP
 .B NOOP
-client allows server to notify on new mail
+client allowing server to notify on new mail
+.TP
+.B NOTIFY
+client telling server to inform on specific events
 .PP
 and tries to wake up a running fetchmail daemon before performing
 the command.
@@ -104,7 +107,7 @@ is ignored.
 \fBplugin\fP {
     ...
 
-    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, & STATUS commands
+    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, NOTIFY & STATUS commands
 
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)

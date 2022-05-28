@@ -2,13 +2,13 @@ Source: dovecot-fetchmail
 Section: utils
 Priority: optional
 Maintainer: Peter Marschall <peter@adpm.de>
-Build-Depends: debhelper (>= 9), dovecot-dev (>= 1:2.1.0)
-Standards-Version: 3.9.3
+Build-Depends: debhelper-compat (= 13), dovecot-dev (>= 1:2.3.0)
+Standards-Version: 4.6.1
 Homepage: https://github.com/marschap/fetchmail_wakeup
 
 Package: dovecot-fetchmail
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd (>= 1:2.1.0), fetchmail, ucf (>= 2.0020)
+Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd (>= 1:2.3.0), fetchmail, ucf
 Description: Dovecot plugin that wakes up fetchmail
  dovecot-fetchmail provides a plugin for the Dovecot IMAP server that
  awakens a sleeping fetchmail daemon whenever an IMAP client calls

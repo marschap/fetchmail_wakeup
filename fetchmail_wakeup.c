@@ -42,7 +42,7 @@
 /*
  * make sure we have the right ABI version at runtime
  */
-const char *fetchmail_wakeup__plugin_version = DOVECOT_ABI_VERSION;
+const char *fetchmail_wakeup_plugin_version = DOVECOT_ABI_VERSION;
 
 
 /* commands that can be intercepted */

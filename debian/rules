@@ -25,8 +25,6 @@ install: build
 	$(MAKE) DESTDIR=$(CURDIR)/debian/dovecot-fetchmail \
 		PLUGIN_NAME=lib90_fetchmail_wakeup_plugin.so \
 		install
-	install -o root -g root -m 0644 $(CURDIR)/example-config/conf.d/*.conf \
-		$(CURDIR)/debian/dovecot-fetchmail/usr/share/dovecot/conf.d/
 
 binary-indep: build install
 

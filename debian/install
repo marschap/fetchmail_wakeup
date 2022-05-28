@@ -1,0 +1,1 @@
+example-config/conf.d/*.conf usr/share/dovecot/conf.d/

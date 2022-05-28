@@ -33,7 +33,7 @@
 
 
 #if !defined(FETCHMAIL_PIDFILE)
-#  define FETCHMAIL_PIDFILE	"/var/run/fetchmail/fetchmail.pid"
+#  define FETCHMAIL_PIDFILE	"/run/fetchmail/fetchmail.pid"
 #endif
 
 

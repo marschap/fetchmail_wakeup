@@ -1,3 +1,17 @@
+dovecot-fetchmail (2.2.0-0pm1) unstable; urgency=medium
+
+  * new upstream release 2.2.0
+
+  * debian/copyright: update year in Coypright stanza
+  * debian/gpb.conf: rename section [git-dch] to [dch]
+  * debian/source/format: new
+  * debian/control: modernize
+  * debian/compat: remove
+  * debian/rules, debian/install: use descriptive installation
+  * debian/rules: use dh command sequencer
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 28 May 2022 13:14:53 +0200
+
 dovecot-fetchmail (2.1.1-0pm1) unstable; urgency=medium
 
   * new upstream release

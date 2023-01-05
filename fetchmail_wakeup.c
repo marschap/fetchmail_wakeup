@@ -5,7 +5,7 @@
  * - original version named wake_up_fetchmail.c
  *
  * Copyright (C) 2009-2023 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1, 1.2 [bothe deprecated], and 2.x
+ * - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *

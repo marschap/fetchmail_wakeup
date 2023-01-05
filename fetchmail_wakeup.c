@@ -14,7 +14,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/time.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
@@ -36,9 +35,6 @@
 #endif
 
 
-#define FETCHMAIL_INTERVAL	60
-
-
 /*
  * make sure we have the right ABI version at runtime
  */
@@ -54,51 +50,6 @@ static const char *default_cmds[] = {
 	NULL
 };
 
-/*
- * Get a interval value from config and parse it into a number (with fallback for failures)
- */
-static long getenv_interval(struct mail_user *user, const char *name, long fallback)
-{
-	if (name != NULL) {
-		const char *value_as_str = mail_user_plugin_getenv(user, name);
-
-		if (value_as_str != NULL) {
-			long value;
-
-			if ((str_to_long(value_as_str, &value) < 0) || (value <= 0)) {
-				i_warning("fetchmail_wakeup: %s must be a positive number", name);
-				return fallback;
-			}
-			else
-				return value;
-		}
-	}
-	return fallback;
-}
-
-
-/*
- * Don't bother waking up fetchmail too often
- */
-static bool ratelimit(long interval)
-{
-	static struct timeval last_one;
-	struct timeval now;
-	long long millisec_delta;
-
-	if (gettimeofday(&now, NULL))
-		return FALSE;
-
-	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
-	                  now.tv_usec - last_one.tv_usec) / 1000LL;
-	if (millisec_delta > interval * 1000LL) {
-		last_one = now;
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
@@ -106,25 +57,10 @@ static bool ratelimit(long interval)
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
-	long fetchmail_interval = FETCHMAIL_INTERVAL;
 
 	/* read config variables depending on the session */
 	const char *fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
 	const char *fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
-
-	/* convert config variable "fetchmail_interval" into a number */
-	fetchmail_interval = getenv_interval(user, "fetchmail_interval", FETCHMAIL_INTERVAL);
-
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
-#endif
-
-	if (ratelimit(fetchmail_interval))
-		return;
-
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: rate limit passed.");
-#endif
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {

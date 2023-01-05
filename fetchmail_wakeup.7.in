@@ -23,7 +23,8 @@ fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
 .SH DESCRIPTION
 fetchmail_wakeup is a plugin for Dovecot 2.1+
 .PP
-It intercepts the following IMAPv4 commands to fetch mail from the server:
+By default, it intercepts the following IMAPv4 commands
+to fetch mail from an upstream mail server:
 .TP
 .B STATUS
 client polling for new mail
@@ -82,7 +83,12 @@ extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
 Then, set the plugin's configuration options.
 This is done in dovecot.conf's \fBplugin\fP section.
 
-fetchmail_wakeup supports six configuration options:
+fetchmail_wakeup supports four configuration options:
+.TP
+.BR fetchmail_commands = \fICOMMAND-LIST\fP
+Comma-separated list of IMAP comamnds to intercept.
+If it is not given, the default is \fBSTATUS, IDLE, NOOP, NOTIFY\fP
+as describved above.
 .TP
 .BR fetchmail_interval = \fINUMBER\fP
 Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
@@ -106,6 +112,10 @@ is ignored.
     ...
 
     ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, NOTIFY & STATUS commands
+
+    # IMAP commands to intercept
+    # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)
+    \fBfetchmail_commands\fP = STATUS, IDLE, NOOP, NOTIFY
 
     # minimal interval (in seconds) between two awakenings of fetchmail
     # (this setting is optional and defaults to 60)

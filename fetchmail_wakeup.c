@@ -46,7 +46,7 @@ const char *fetchmail_wakeup_plugin_version = DOVECOT_ABI_VERSION;
 
 
 /* commands that can be intercepted */
-static const char *cmds[] = {
+static const char *default_cmds[] = {
 	"IDLE",
 	"NOOP",
 	"STATUS",
@@ -105,19 +105,15 @@ static bool ratelimit(long interval)
  */
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
-	struct client *client = ctx->client;
+	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
 
-	/* make sure client->user is defined */
-	if (client == NULL || client->user == NULL)
-		return;
-
 	/* read config variables depending on the session */
-	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
-	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
+	const char *fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
+	const char *fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
 
 	/* convert config variable "fetchmail_interval" into a number */
-	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
+	fetchmail_interval = getenv_interval(user, "fetchmail_interval", FETCHMAIL_INTERVAL);
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
@@ -192,17 +188,21 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
  */
 static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
-	if (ctx != NULL && ctx->name != NULL) {
+	if (ctx != NULL && ctx->name != NULL && ctx->client != NULL && ctx->client->user != NULL) {
+		struct mail_user *user = ctx->client->user;
+		const char *fetchmail_cmds = mail_user_plugin_getenv(user, "fetchmail_commands");
+		const char **cmds = default_cmds;
 		int i;
 
-		for (i = 0; cmds[i] != NULL; i++) {
-			if (strcasecmp(cmds[i], ctx->name) == 0) {
-				const char *username = "(unknown user)";
+		/* use configured commands if available */
+		if (fetchmail_cmds != NULL)
+			cmds = t_strsplit_spaces(fetchmail_cmds, ", ");
 
-				if (ctx->client != NULL &&
-				    ctx->client->user != NULL &&
-				    ctx->client->user->username != NULL)
-					username = ctx->client->user->username;
+		for (i = 0; cmds != NULL && cmds[i] != NULL; i++) {
+			if (strcasecmp(cmds[i], ctx->name) == 0) {
+				const char *username = (user->username != NULL)
+						       ? user->username
+						       : "(unknown user)";
 
 				i_info("fetchmail_wakeup: intercepting %s for %s.",
 				       cmds[i], username);

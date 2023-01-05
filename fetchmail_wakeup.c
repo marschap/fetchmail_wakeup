@@ -197,8 +197,15 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 		for (i = 0; cmds[i] != NULL; i++) {
 			if (strcasecmp(cmds[i], ctx->name) == 0) {
+				const char *username = "(unknown user)";
 
-				i_info("fetchmail_wakeup: intercepting %s.", cmds[i]);
+				if (ctx->client != NULL &&
+				    ctx->client->user != NULL &&
+				    ctx->client->user->username != NULL)
+					username = ctx->client->user->username;
+
+				i_info("fetchmail_wakeup: intercepting %s for %s.",
+				       cmds[i], username);
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);

@@ -8,7 +8,7 @@ fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 [both deprecated], and 2.x
 * Versions 2.x are targetted towards dovecot 2.x.
 * Versions 2.2.x give up compatibility with dovecot < 2.1
  
-It intercepts the IMAPv4 commands to fetch mail from the server:
+By default, it intercepts the IMAPv4 commands to fetch mail from an upstream server:
 - STATUS: client polls for new mail
 - IDLE:   client tells server to push new mail
 - NOOP:   client allows server to notify on new mail
@@ -25,8 +25,7 @@ As both, the PID file and the command to execute, can be configured in
 Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 
-Although some kind of runtime-configurable rate-limiting is supported,
-this module is not considered suitable for large installations.
+This module is not considered suitable for large installations.
 But those installations do not rely on fetchmail for pulling in
 new mail from a provider anyway.
 
@@ -36,7 +35,7 @@ Copyrights
 Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
 - original version named wake_up_fetchmail.c
 
-Copyright (C) 2009-2022 Peter Marschall <peter@adpm.de>
+Copyright (C) 2009-2023 Peter Marschall <peter@adpm.de>
 - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
@@ -102,10 +101,11 @@ This is a 2-step process:
 2) Setting the plugin's configuration options.
    This is done in dovecot.conf's plugin "section".
 
-   fetchmail_wakeup supports six configuration options:
-   - fetchmail_interval = NUMBER
-     Set minimal interval between two fetchmail invocations to NUMBER seconds.
-     If it is not given, the interval defaults to 60.
+   fetchmail_wakeup supports three configuration options:
+   - fetchmail_commands = COMMAND-LIST
+     Comma-separated list of IMAP comamnds to intercept.
+     If it is not given, the default is STATUS, IDLE, NOOP, NOTIFY
+     as describved above.
    - fetchmail_helper = COMMAND
      Execute COMMAND to either start fetchmail (or any other mail fetching tool),
      or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -121,9 +121,9 @@ This is a 2-step process:
 
         ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, NOTIFY & STATUS commands
 
-        # minimal interval (in seconds) between two awakenings of fetchmail
-        # (this setting is optional and defaults to 60)
-        fetchmail_interval = 60
+        # IMAP commands to intercept
+        # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)
+        fetchmail_commands = STATUS, IDLE, NOOP, NOTIFY
 
         # a helper program to notify fetchmail accordingly
         fetchmail_helper = /usr/bin/awaken-fetchmail

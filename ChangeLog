@@ -1,3 +1,12 @@
+Release 2.3.0
+=============
+
+2022-01-05 Peter Marschall <peter@adpm.de>
+* fix typos
+* remove non-working config option 'fetchmail_interval'
+* new config option 'fetchmail_commands'
+* log user for whom command is intercepted
+
 Release 2.2.0
 =============
 

@@ -4,8 +4,8 @@
  * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
  * - original version named wake_up_fetchmail.c
  *
- * Copyright (C) 2009-2022 Peter Marschall <peter@adpm.de>
- * - adaptions to dovecot 1.1, 1.2 [bothe deprecated], and 2.x
+ * Copyright (C) 2009-2023 Peter Marschall <peter@adpm.de>
+ * - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
  *
@@ -14,7 +14,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/time.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
@@ -36,17 +35,14 @@
 #endif
 
 
-#define FETCHMAIL_INTERVAL	60
-
-
 /*
  * make sure we have the right ABI version at runtime
  */
-const char *fetchmail_wakeup__plugin_version = DOVECOT_ABI_VERSION;
+const char *fetchmail_wakeup_plugin_version = DOVECOT_ABI_VERSION;
 
 
 /* commands that can be intercepted */
-static const char *cmds[] = {
+static const char *default_cmds[] = {
 	"IDLE",
 	"NOOP",
 	"STATUS",
@@ -54,81 +50,17 @@ static const char *cmds[] = {
 	NULL
 };
 
-/*
- * Get a interval value from config and parse it into a number (with fallback for failures)
- */
-static long getenv_interval(struct mail_user *user, const char *name, long fallback)
-{
-	if (name != NULL) {
-		const char *value_as_str = mail_user_plugin_getenv(user, name);
-
-		if (value_as_str != NULL) {
-			long value;
-
-			if ((str_to_long(value_as_str, &value) < 0) || (value <= 0)) {
-				i_warning("fetchmail_wakeup: %s must be a positive number", name);
-				return fallback;
-			}
-			else
-				return value;
-		}
-	}
-	return fallback;
-}
-
-
-/*
- * Don't bother waking up fetchmail too often
- */
-static bool ratelimit(long interval)
-{
-	static struct timeval last_one;
-	struct timeval now;
-	long long millisec_delta;
-
-	if (gettimeofday(&now, NULL))
-		return FALSE;
-
-	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
-	                  now.tv_usec - last_one.tv_usec) / 1000LL;
-	if (millisec_delta > interval * 1000LL) {
-		last_one = now;
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
  */
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
-	struct client *client = ctx->client;
-	long fetchmail_interval = FETCHMAIL_INTERVAL;
-
-	/* make sure client->user is defined */
-	if (client == NULL || client->user == NULL)
-		return;
+	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
 
 	/* read config variables depending on the session */
-	const char *fetchmail_helper = mail_user_plugin_getenv(client->user, "fetchmail_helper");
-	const char *fetchmail_pidfile = mail_user_plugin_getenv(client->user, "fetchmail_pidfile");
-
-	/* convert config variable "fetchmail_interval" into a number */
-	fetchmail_interval = getenv_interval(client->user, "fetchmail_interval", FETCHMAIL_INTERVAL);
-
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
-#endif
-
-	if (ratelimit(fetchmail_interval))
-		return;
-
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: rate limit passed.");
-#endif
+	const char *fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
+	const char *fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
@@ -192,13 +124,24 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
  */
 static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
-	if (ctx != NULL && ctx->name != NULL) {
+	if (ctx != NULL && ctx->name != NULL && ctx->client != NULL && ctx->client->user != NULL) {
+		struct mail_user *user = ctx->client->user;
+		const char *fetchmail_cmds = mail_user_plugin_getenv(user, "fetchmail_commands");
+		const char **cmds = default_cmds;
 		int i;
 
-		for (i = 0; cmds[i] != NULL; i++) {
-			if (strcasecmp(cmds[i], ctx->name) == 0) {
+		/* use configured commands if available */
+		if (fetchmail_cmds != NULL)
+			cmds = t_strsplit_spaces(fetchmail_cmds, ", ");
 
-				i_info("fetchmail_wakeup: intercepting %s.", cmds[i]);
+		for (i = 0; cmds != NULL && cmds[i] != NULL; i++) {
+			if (strcasecmp(cmds[i], ctx->name) == 0) {
+				const char *username = (user->username != NULL)
+						       ? user->username
+						       : "(unknown user)";
+
+				i_info("fetchmail_wakeup: intercepting %s for %s.",
+				       cmds[i], username);
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);

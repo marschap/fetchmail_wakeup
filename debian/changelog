@@ -1,3 +1,11 @@
+dovecot-fetchmail (2.3.0-0pm1) unstable; urgency=medium
+
+  * new upstream release 2.3.0
+
+  * debian/copyright: update year in Coypright stanza
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 07 Jan 2023 19:04:52 +0100
+
 dovecot-fetchmail (2.2.0-0pm1) unstable; urgency=medium
 
   * new upstream release 2.2.0

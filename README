@@ -25,7 +25,8 @@ As both, the PID file and the command to execute, can be configured in
 Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 
-This module is not considered suitable for large installations.
+Although some kind of runtime-configurable rate-limiting is supported,
+this module is not considered suitable for large installations.
 But those installations do not rely on fetchmail for pulling in
 new mail from a provider anyway.
 
@@ -101,11 +102,14 @@ This is a 2-step process:
 2) Setting the plugin's configuration options.
    This is done in dovecot.conf's plugin "section".
 
-   fetchmail_wakeup supports three configuration options:
+   fetchmail_wakeup supports four configuration options:
    - fetchmail_commands = COMMAND-LIST
      Comma-separated list of IMAP comamnds to intercept.
      If it is not given, the default is STATUS, IDLE, NOOP, NOTIFY
      as describved above.
+   - fetchmail_interval = NUMBER
+     Set minimal interval between two fetchmail invocations to NUMBER seconds.
+     If it is not given, the interval defaults to 60.
    - fetchmail_helper = COMMAND
      Execute COMMAND to either start fetchmail (or any other mail fetching tool),
      or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -124,6 +128,10 @@ This is a 2-step process:
         # IMAP commands to intercept
         # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)
         fetchmail_commands = STATUS, IDLE, NOOP, NOTIFY
+
+        # minimal interval (in seconds) between two awakenings of fetchmail
+        # (this setting is optional and defaults to 60)
+        fetchmail_interval = 60
 
         # a helper program to notify fetchmail accordingly
         fetchmail_helper = /usr/bin/awaken-fetchmail

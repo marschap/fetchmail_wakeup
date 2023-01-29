@@ -92,7 +92,7 @@ as describved above.
 .TP
 .BR fetchmail_interval = \fINUMBER\fP
 Set minimal interval between two fetchmail invocations to \fINUMBER\fP seconds.
-If it is not given, the interval defaults to \fB60\fP.
+If it is not given, the interval defaults to \fB0\fP, which disables rate-limiting.
 .TP
 .BR fetchmail_helper = \fICOMMAND\fP
 Execute \fICOMMAND\fP to either start fetchmail (or any other mail fetching tool),
@@ -118,8 +118,8 @@ is ignored.
     \fBfetchmail_commands\fP = STATUS, IDLE, NOOP, NOTIFY
 
     # minimal interval (in seconds) between two awakenings of fetchmail
-    # (this setting is optional and defaults to 60)
-    \fBfetchmail_interval\fP = 60
+    # (this setting is optional and defaults to 0, disabling rate-limiting)
+    \fBfetchmail_interval\fP = 0
 
     # a helper program to notify fetchmail accordingly
     \fBfetchmail_helper\fP = BINDIR/awaken-fetchmail

@@ -109,7 +109,7 @@ This is a 2-step process:
      as describved above.
    - fetchmail_interval = NUMBER
      Set minimal interval between two fetchmail invocations to NUMBER seconds.
-     If it is not given, the interval defaults to 60.
+     If it is not given, the interval defaults to 0, which disables rate-limiting.
    - fetchmail_helper = COMMAND
      Execute COMMAND to either start fetchmail (or any other mail fetching tool),
      or to awaken a running fetchmail daemon (or any other mail fetching tool).
@@ -130,7 +130,7 @@ This is a 2-step process:
         fetchmail_commands = STATUS, IDLE, NOOP, NOTIFY
 
         # minimal interval (in seconds) between two awakenings of fetchmail
-        # (this setting is optional and defaults to 60)
+        # (this setting is optional and defaults to 0, disabling rate-limiting)
         fetchmail_interval = 60
 
         # a helper program to notify fetchmail accordingly

@@ -36,7 +36,7 @@
 #endif
 
 
-#define FETCHMAIL_INTERVAL	60
+#define FETCHMAIL_INTERVAL	0
 
 
 /*
@@ -65,7 +65,7 @@ static long getenv_interval(struct mail_user *user, const char *name, long fallb
 		if (value_as_str != NULL) {
 			long value;
 
-			if ((str_to_long(value_as_str, &value) < 0) || (value <= 0)) {
+			if ((str_to_long(value_as_str, &value) < 0) || (value < 0)) {
 				i_warning("fetchmail_wakeup: %s must be a positive number", name);
 				return fallback;
 			}
@@ -119,12 +119,15 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
 #endif
 
-	if (ratelimit(fetchmail_interval))
-		return;
+	/* try rate-limiting only if interval is set to a value > 0 */
+	if (fetchmail_interval > 0) {
+		if (ratelimit(fetchmail_interval))
+			return;
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: rate limit passed.");
+		i_debug("fetchmail_wakeup: rate limit passed.");
 #endif
+	}
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {

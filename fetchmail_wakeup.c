@@ -24,6 +24,7 @@
 #include <limits.h>
 #include "lib.h"
 #include "imap-client.h"
+#include "ioloop.h"
 
 
 /* check that we have the minimal dovecot version required for compilation */
@@ -82,17 +83,10 @@ static long getenv_interval(struct mail_user *user, const char *name, long fallb
  */
 static bool ratelimit(long interval)
 {
-	static struct timeval last_one;
-	struct timeval now;
-	long long millisec_delta;
+	static time_t previous;
 
-	if (gettimeofday(&now, NULL))
-		return FALSE;
-
-	millisec_delta = ((now.tv_sec - last_one.tv_sec) * 1000000LL +
-	                  now.tv_usec - last_one.tv_usec) / 1000LL;
-	if (millisec_delta > interval * 1000LL) {
-		last_one = now;
+	if (ioloop_time - previous > interval) {
+		previous = ioloop_time;
 		return FALSE;
 	}
 

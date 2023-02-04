@@ -29,7 +29,7 @@
 /* check that we have the minimal dovecot version required for compilation */
 #if defined(DOVECOT_VERSION_MAJOR) && defined(DOVECOT_VERSION_MINOR)
 #	if ((DOVECOT_VERSION_MAJOR << 24) + (DOVECOT_VERSION_MINOR << 16) <= 0x02010000)
-#		error *** dovecot versioni too low: must be 2.1.0 or higher ***
+#		error *** dovecot version too low: must be 2.1.0 or higher ***
 #	endif
 #else
 #	error *** dovecot version unknown: must be 2.1.0 or higher ***

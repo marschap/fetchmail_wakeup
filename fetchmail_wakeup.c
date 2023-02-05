@@ -100,11 +100,9 @@ static bool ratelimit(long interval)
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
+	const char *fetchmail_helper = NULL;
+	const char *fetchmail_pidfile = NULL;
 	long fetchmail_interval = FETCHMAIL_INTERVAL;
-
-	/* read config variables depending on the session */
-	const char *fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
-	const char *fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
 
 	/* convert config variable "fetchmail_interval" into a number */
 	fetchmail_interval = getenv_interval(user, "fetchmail_interval", FETCHMAIL_INTERVAL);
@@ -122,6 +120,10 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		i_debug("fetchmail_wakeup: rate limit passed.");
 #endif
 	}
+
+	/* read config variables depending on the session */
+	fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
+	fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {

@@ -1,7 +1,26 @@
+Release 2.3.1
+=============
+
+2023-02-05 Peter Marschall <peter@adpm.de>
+* Postpone reading config parameters after rate-limiting passed
+* document the limitations of the rate-limiting implemented
+* consistently use 'IMAP' without any additions
+* update docs to better clarify commands are not hard-coded
+* clarify warning message for invalid values of fetchmail_interval
+
+2023-02-04 Peter Marschall <peter@adpm.de>
+* use Dovecot's ioloop_time instead of calling gettimeofday()
+* fix typo
+
+2023-01-29 Peter Marschall <peter@adpm.de>
+* only call ratelimit() with fetchmail_interval > 0
+* revert "remove non-working config option 'fetchmail_interval'"
+* document 'fetchmail_commands' in example config file
+
 Release 2.3.0
 =============
 
-2022-01-05 Peter Marschall <peter@adpm.de>
+2023-01-05 Peter Marschall <peter@adpm.de>
 * fix typos
 * remove non-working config option 'fetchmail_interval'
 * new config option 'fetchmail_commands'

@@ -26,9 +26,11 @@ Dovecot's configuration file dovecot.conf, you are not restricted to
 fetchmail, but can execute or send a signal to any command you want.
 
 Although some kind of runtime-configurable rate-limiting is supported,
-this module is not considered suitable for large installations.
-But those installations do not rely on fetchmail for pulling in
-new mail from a provider anyway.
+it is limited to being per user and session only.
+
+Hence this module is explicitly not considered suitable for large scale
+installations.  But those installations do not rely on fetchmail for pulling
+in new mail from a provider anyway.
 
 
 Copyrights

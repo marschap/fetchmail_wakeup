@@ -150,9 +150,10 @@ mechanisms.
 
 
 .SH NOTES
-Although some kind of runtime-configurable rate-limiting is supported
-using \fIfetchmail_interval\fP,
-this module is not considered suitable for large scale installations.
+Although some kind of runtime-configurable rate-limiting is supported using
+\fIfetchmail_interval\fP, it is limited to being per session and user only.
+.br
+Hence this module is explicitly not considered suitable for large scale installations.
 But those installations do not rely on fetchmail for pulling in
 new mail from mail providers anyway.
 

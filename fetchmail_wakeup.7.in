@@ -23,7 +23,7 @@ fetchmail_wakeup \- Dovecot plugin to trigger fetchmail wakeups
 .SH DESCRIPTION
 fetchmail_wakeup is a plugin for Dovecot 2.1+
 .PP
-By default, it intercepts the following IMAPv4 commands
+By default, it intercepts the following IMAP commands
 to fetch mail from an upstream mail server:
 .TP
 .B STATUS

@@ -8,7 +8,7 @@ fetchmail_wakeup is a plugin for Dovecot 1.1, 1.2 [both deprecated], and 2.x
 * Versions 2.x are targetted towards dovecot 2.x.
 * Versions 2.2.x give up compatibility with dovecot < 2.1
  
-By default, it intercepts the IMAPv4 commands to fetch mail from an upstream server:
+By default, it intercepts the IMAP commands to fetch mail from an upstream server:
 - STATUS: client polls for new mail
 - IDLE:   client tells server to push new mail
 - NOOP:   client allows server to notify on new mail

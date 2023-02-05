@@ -180,7 +180,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 
 
 /*
- * IMAPv4 command wrapper / pre-command hook callback:
+ * IMAP command wrapper / pre-command hook callback:
  * - Dovecot 2.1+: simply call fetchmail_wakeup, as Dovecot 2.1+ has command hooks
  */
 static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
@@ -215,7 +215,7 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 
 /*
- * IMAPv4 post-command hook callback:
+ * IMAP post-command hook callback:
  * - Dovecot 2.1+ (only): required (the hook handlers don't check for NULL), but not used
  */
 static void fetchmail_wakeup_null(struct client_command_context *ctx)

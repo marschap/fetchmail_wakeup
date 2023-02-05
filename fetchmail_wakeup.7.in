@@ -111,7 +111,7 @@ is ignored.
 \fBplugin\fP {
     ...
 
-    ## fetchmail_wakeup plugin: awaken fetchmail on IDLE, NOOP, NOTIFY & STATUS commands
+    ## fetchmail_wakeup plugin: awaken fetchmail on IMAP commands
 
     # IMAP commands to intercept
     # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)

@@ -14,6 +14,7 @@
  */
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>
@@ -23,16 +24,20 @@
 #include <limits.h>
 #include "lib.h"
 #include "imap-client.h"
+#include "ioloop.h"
 
 
 /* check that we have the minimal dovecot version required for compilation */
 #if defined(DOVECOT_VERSION_MAJOR) && defined(DOVECOT_VERSION_MINOR)
 #	if ((DOVECOT_VERSION_MAJOR << 24) + (DOVECOT_VERSION_MINOR << 16) <= 0x02010000)
-#		error *** dovecot versioni too low: must be 2.1.0 or higher ***
+#		error *** dovecot version too low: must be 2.1.0 or higher ***
 #	endif
 #else
 #	error *** dovecot version unknown: must be 2.1.0 or higher ***
 #endif
+
+
+#define FETCHMAIL_INTERVAL	0
 
 
 /*
@@ -50,6 +55,44 @@ static const char *default_cmds[] = {
 	NULL
 };
 
+/*
+ * Get a interval value from config and parse it into a number (with fallback for failures)
+ */
+static long getenv_interval(struct mail_user *user, const char *name, long fallback)
+{
+	if (name != NULL) {
+		const char *value_as_str = mail_user_plugin_getenv(user, name);
+
+		if (value_as_str != NULL) {
+			long value;
+
+			if ((str_to_long(value_as_str, &value) < 0) || (value < 0)) {
+				i_warning("fetchmail_wakeup: %s must be a non-negative number", name);
+				return fallback;
+			}
+			else
+				return value;
+		}
+	}
+	return fallback;
+}
+
+
+/*
+ * Don't bother waking up fetchmail too often
+ */
+static bool ratelimit(long interval)
+{
+	static time_t previous;
+
+	if (ioloop_time - previous > interval) {
+		previous = ioloop_time;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
@@ -57,10 +100,30 @@ static const char *default_cmds[] = {
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
+	const char *fetchmail_helper = NULL;
+	const char *fetchmail_pidfile = NULL;
+	long fetchmail_interval = FETCHMAIL_INTERVAL;
+
+	/* convert config variable "fetchmail_interval" into a number */
+	fetchmail_interval = getenv_interval(user, "fetchmail_interval", FETCHMAIL_INTERVAL);
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
+#endif
+
+	/* try rate-limiting only if interval is set to a value > 0 */
+	if (fetchmail_interval > 0) {
+		if (ratelimit(fetchmail_interval))
+			return;
+
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		i_debug("fetchmail_wakeup: rate limit passed.");
+#endif
+	}
 
 	/* read config variables depending on the session */
-	const char *fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
-	const char *fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
+	fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
+	fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
@@ -119,7 +182,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 
 
 /*
- * IMAPv4 command wrapper / pre-command hook callback:
+ * IMAP command wrapper / pre-command hook callback:
  * - Dovecot 2.1+: simply call fetchmail_wakeup, as Dovecot 2.1+ has command hooks
  */
 static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
@@ -154,7 +217,7 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 
 /*
- * IMAPv4 post-command hook callback:
+ * IMAP post-command hook callback:
  * - Dovecot 2.1+ (only): required (the hook handlers don't check for NULL), but not used
  */
 static void fetchmail_wakeup_null(struct client_command_context *ctx)

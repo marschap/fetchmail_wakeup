@@ -67,7 +67,7 @@ static long getenv_interval(struct mail_user *user, const char *name, long fallb
 			long value;
 
 			if ((str_to_long(value_as_str, &value) < 0) || (value < 0)) {
-				i_warning("fetchmail_wakeup: %s must be a positive number", name);
+				i_warning("fetchmail_wakeup: %s must be a non-negative number", name);
 				return fallback;
 			}
 			else

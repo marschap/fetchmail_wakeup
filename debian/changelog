@@ -1,3 +1,9 @@
+dovecot-fetchmail (2.3.1-0pm3) unstable; urgency=medium
+
+  * rebuild against dovecot 2.3.21
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 11 Nov 2023 13:54:32 +0100
+
 dovecot-fetchmail (2.3.1-0pm2) unstable; urgency=medium
 
   * rebuild against dovecot 2.3.20

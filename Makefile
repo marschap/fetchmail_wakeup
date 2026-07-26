@@ -13,8 +13,8 @@ PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(s
 # Dovecot's header directory
 DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
-DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
-DOVECOT_IMAP_SETTINGDIR = ${DOVECOT_IMAP_MODULEDIR}/settings
+DOVECOT_MODULEDIR = /usr/lib/dovecot/modules
+DOVECOT_SETTINGDIR = ${DOVECOT_MODULEDIR}/settings
 # Dovecot's config directory (where dovecot.conf resides)
 DOVECOT_ETCDIR = /etc/dovecot
 # directory for binaries
@@ -91,7 +91,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	      $< -o $@
 
 %.1 : %.1.in
-	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
+	sed -e 's:DOVECOT_MODULEDIR:${DOVECOT_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -101,7 +101,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 %.7 : %.7.in
-	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
+	sed -e 's:DOVECOT_MODULEDIR:${DOVECOT_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -116,12 +116,12 @@ install: install_plugins install_helper install_man
 install_plugins: install_settings_plugin install_plugin
 
 install_settings_plugin: ${SETTINGS_PLUGIN_NAME}
-	install -d ${DESTDIR}/${DOVECOT_IMAP_SETTINGDIR}
-	install $< ${DESTDIR}/${DOVECOT_IMAP_SETTINGDIR}
+	install -d ${DESTDIR}/${DOVECOT_SETTINGDIR}
+	install $< ${DESTDIR}/${DOVECOT_SETTINGDIR}
 
 install_plugin: ${PLUGIN_NAME}
-	install -d ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
-	install $< ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
+	install -d ${DESTDIR}/${DOVECOT_MODULEDIR}
+	install $< ${DESTDIR}/${DOVECOT_MODULEDIR}
 
 install_helper: ${HELPER_NAME}
 	install -d ${DESTDIR}/${BINDIR}

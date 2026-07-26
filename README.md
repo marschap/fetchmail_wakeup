@@ -62,15 +62,15 @@ Installation of the plugin is essentially a 3-step process:
 1) Configure the paths in Makefile according to your installation
    The relevant variables are:
 
-   - **DOVECOT_INCDIR** - directory containing dovecot header files
-   - **DOVECOT_IMAP_MODULEDIR** - directory the plugin shall be installed into
+   - **DOVECOT_INCDIR** - directory containing Dovecot's header files
+   - **DOVECOT_MODULEDIR** - directory the main plugin shall be installed into
+   - **DOVECOT_SETTINGSDIR** - directory the settings plugin shall be installed into
+   - **DOVECOT_ETCDIR** - directory where dovecot.conf resides
    - **BINDIR** - directory the helper program shall be installed into
    - **MAN1DIR** - directory the helper manunal page shall be installed into
    - **MAN7DIR** - directory the plugin's manual page shall be installed into
-   - **DOVECOT_ETCDIR** - directory where dovecot.conf resides
    - **FETCHMAIL_PIDFILE** - fully qualified path of fetchmail's PID file
    - **DEBUG** - if you want to see what's going on
-   - **DOVECOT_PLUGIN_API_2_{0,1}** - the plugin API to use
 
 2) Compile the module with the following command line
 

@@ -16,6 +16,15 @@
 #ifndef FETCHMAIL_WAKEUP_SETTINGS_PLUGIN_H
 #define FETCHMAIL_WAKEUP_SETTINGS_PLUGIN_H
 
+#if !defined(FETCHMAIL_INTERVAL)
+#  define FETCHMAIL_INTERVAL	0
+#endif
+
+#if !defined(FETCHMAIL_PIDFILE)
+#  define FETCHMAIL_PIDFILE	"/run/fetchmail/fetchmail.pid"
+#endif
+
+
 enum fetchmail_command {
 	FETCHMAIL_COMMAND_NOOP		= 0x01,
 	FETCHMAIL_COMMAND_STATUS	= 0x02,

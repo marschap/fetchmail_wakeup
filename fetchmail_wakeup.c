@@ -40,9 +40,6 @@
 #endif
 
 
-#define FETCHMAIL_INTERVAL	0
-
-
 /*
  * make sure we have the right ABI version at runtime
  */

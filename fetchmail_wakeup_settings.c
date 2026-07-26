@@ -40,9 +40,9 @@ static const struct setting_define fetchmail_wakeup_setting_defines[] = {
 
 static const struct fetchmail_wakeup_settings fetchmail_wakeup_default_settings = {
 	.fetchmail_commands = ARRAY_INIT,
-	.fetchmail_interval = 60,
+	.fetchmail_interval = FETCHMAIL_INTERVAL,
 	.fetchmail_helper = "",
-	.fetchmail_pidfile = "/run/fetchmail/fetchmail.pid",
+	.fetchmail_pidfile = FETCHMAIL_PIDFILE,
 };
 
 static const struct setting_keyvalue fetchmail_wakeup_default_settings_keyvalue[] = {

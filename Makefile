@@ -65,7 +65,8 @@ all: build
 build: ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 %.o: %.c
-	$(CC) -I${DOVECOT_INCDIR} \
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	      -I${DOVECOT_INCDIR} \
 	      -fPIC -Wall \
 	      -DHAVE_CONFIG_H \
 	      $< -c -o $@

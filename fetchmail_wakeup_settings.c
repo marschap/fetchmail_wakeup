@@ -57,9 +57,7 @@ static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool, const char 
 
 static enum fetchmail_command fetchmail_command_find(const char *name)
 {
-	unsigned int i;
-
-	for (i = 0; fetchmail_command_names[i] != NULL; i++) {
+	for (unsigned int i = 0; fetchmail_command_names[i] != NULL; i++) {
 		if (strcmp(name, fetchmail_command_names[i]) == 0) {
 			return 1 << i;
 		}

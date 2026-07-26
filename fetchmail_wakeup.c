@@ -68,11 +68,9 @@ static int replace_percent_home(const char* string_possibly_containing_home, str
 	char buf[1024] = "";;
 	char current;
 	char prev;
-	int i;
-	int j;
 	int k = 0;
 
-	for (i = 0; string_possibly_containing_home[i] != '\0'; i++) {
+	for (int i = 0; string_possibly_containing_home[i] != '\0'; i++) {
 		current = string_possibly_containing_home[i];
 		if (current == 'h' && prev == '%') {
 			const char *home_dir;
@@ -80,7 +78,7 @@ static int replace_percent_home(const char* string_possibly_containing_home, str
 				return -1;
 			}
 			k--; // overwrite already written %
-			for (j = 0; home_dir[j] != '\0'; j++) {
+			for (int j = 0; home_dir[j] != '\0'; j++) {
 				buf[k] = home_dir[j];
 				k++;
 			}
@@ -210,12 +208,11 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 			return;
 		}
 		enum fetchmail_command fetchmail_cmds = set->parsed_commands;
-		unsigned int i;
 
 		settings_free(set);
 
 		enum fetchmail_command cmd = 1;
-		for (i = 0; fetchmail_command_names[i] != NULL; i++) {
+		for (unsigned int i = 0; fetchmail_command_names[i] != NULL; i++) {
 			if ((fetchmail_cmds & cmd) && (strcasecmp(fetchmail_command_names[i], ctx->name) == 0)) {
 				const char *username = (user->username != NULL) ? user->username : "(unknown user)";
 

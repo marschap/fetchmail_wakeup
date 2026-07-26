@@ -26,8 +26,6 @@
 #include "fetchmail_wakeup_settings.h"
 
 const char *fetchmail_wakeup_settings_plugin_version = DOVECOT_ABI_VERSION;
-extern const struct setting_parser_info fetchmail_wakeup_setting_parser_info;
-extern const struct setting_parser_info *fetchmail_wakeup_plugin_setting_infos[];
 
 #undef DEF
 #define DEF(type, name) \

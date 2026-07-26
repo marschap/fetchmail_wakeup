@@ -28,6 +28,7 @@
 #include "ioloop.h"
 #include "fetchmail_wakeup_settings.h"
 
+
 /* check that we have the minimal dovecot version required for compilation */
 #if defined(DOVECOT_VERSION_MAJOR) && defined(DOVECOT_VERSION_MINOR)
 #	if ((DOVECOT_VERSION_MAJOR << 24) + (DOVECOT_VERSION_MINOR << 16) <= 0x02010000)
@@ -36,6 +37,15 @@
 #else
 #	error *** dovecot version unknown: must be 2.1.0 or higher ***
 #endif
+
+
+#define FETCHMAIL_INTERVAL	0
+
+
+/*
+ * make sure we have the right ABI version at runtime
+ */
+const char *fetchmail_wakeup_plugin_version = DOVECOT_ABI_VERSION;
 
 
 /*
@@ -95,7 +105,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
 	const char *fetchmail_helper = NULL;
 	const char *fetchmail_pidfile = NULL;
-	long fetchmail_interval;
+	long fetchmail_interval = FETCHMAIL_INTERVAL;
 	const struct fetchmail_wakeup_settings *set;
 	const char *error;
 
@@ -105,19 +115,18 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	}
 	fetchmail_interval = set->fetchmail_interval;
 
-	#if defined(FETCHMAIL_WAKEUP_DEBUG)
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
-	#endif
+#endif
 
 	/* try rate-limiting only if interval is set to a value > 0 */
 	if (fetchmail_interval > 0) {
-		if (ratelimit(fetchmail_interval)) {
+		if (ratelimit(fetchmail_interval))
 			return;
-		}
 
-		#if defined(FETCHMAIL_WAKEUP_DEBUG)
+#if defined(FETCHMAIL_WAKEUP_DEBUG)
 		i_debug("fetchmail_wakeup: rate limit passed.");
-		#endif
+#endif
 	}
 
 	fetchmail_helper = set->fetchmail_helper;
@@ -238,8 +247,9 @@ static void fetchmail_wakeup_null(struct client_command_context *ctx)
  */
 void fetchmail_wakeup_plugin_init(struct module *module ATTR_UNUSED)
 {
-	i_info("fetchmail_wakeup: start intercepting IMAP commands.");
 	command_hook_register(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
+
+	i_info("fetchmail_wakeup: start intercepting IMAP commands.");
 }
 
 /*
@@ -247,8 +257,9 @@ void fetchmail_wakeup_plugin_init(struct module *module ATTR_UNUSED)
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
-	i_info("fetchmail_wakeup: stop intercepting IMAP commands.");
 	command_hook_unregister(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
+
+	i_info("fetchmail_wakeup: stop intercepting IMAP commands.");
 }
 
 

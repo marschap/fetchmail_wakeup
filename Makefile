@@ -60,6 +60,7 @@ MAN7PAGES = fetchmail_wakeup.7
 
 #### configuration end ####
 
+
 .PHONY: all build install install_man clean
 
 all: build

@@ -11,14 +11,14 @@ PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(s
 
 ## paths & directories ##
 # Dovecot's header directory
-DOVECOT_INCDIR = /usr/local/include/dovecot
+DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
 DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
-DOVECOT_IMAP_SETTINGDIR = /usr/lib/dovecot/modules/settings
+DOVECOT_IMAP_SETTINGDIR = ${DOVECOT_IMAP_MODULEDIR}/settings
 # Dovecot's config directory (where dovecot.conf resides)
 DOVECOT_ETCDIR = /etc/dovecot
 # directory for binaries
-BINDIR = /usr//bin
+BINDIR = /usr/bin
 # directories for man pages sections 1 & 7
 MAN1DIR = /usr/share/man/man1
 MAN7DIR = /usr/share/man/man7

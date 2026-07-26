@@ -40,14 +40,11 @@ CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
 endif
 
 # plugin source & target name #
+PLUGIN_SOURCES = fetchmail_wakeupc.c
 PLUGIN_OBJECTS = fetchmail_wakeup.o fetchmail_wakeup_settings.o
 PLUGIN_NAME = lib_fetchmail_wakeup_plugin.so
 SETTINGS_PLUGIN_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
 SETTINGS_PLUGIN_NAME = lib_fetchmail_wakeup_settings_plugin.so
-SETTINGS_OBJECT_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
-SETTINGS_OBJECT_NAME = fetchmail_wakeup_settings.o
-OBJECT_SOURCES = fetchmail_wakeup.c
-OBJECT_NAME = fetchmail_wakeup.o
 
 # helper sources, target name & setuid account #
 HELPER_SOURCES = awaken-fetchmail.c
@@ -65,15 +62,9 @@ MAN7PAGES = fetchmail_wakeup.7
 
 all: build
 
-build: ${SETTINGS_OBJECT_NAME} ${OBJECT_NAME} ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+build: ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
-${SETTINGS_OBJECT_NAME}: ${SETTINGS_OBJECT_SOURCES}
-	$(CC) -I${DOVECOT_INCDIR} \
-	      -fPIC -Wall \
-	      -DHAVE_CONFIG_H \
-	      $< -c -o $@
-
-${OBJECT_NAME}: ${OBJECT_SOURCES}
+%.o: %.c
 	$(CC) -I${DOVECOT_INCDIR} \
 	      -fPIC -Wall \
 	      -DHAVE_CONFIG_H \
@@ -91,8 +82,7 @@ ${PLUGIN_NAME}: ${PLUGIN_OBJECTS}
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
 	      -DHAVE_CONFIG_H \
-              ${PLUGIN_OBJECTS} \
-	      -o $@
+	      $^ -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
@@ -120,7 +110,9 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 
-install: install_settings_plugin install_plugin install_helper install_man
+install: install_plugins install_helper install_man
+
+install_plugins: install_settings_plugin install_plugin
 
 install_settings_plugin: ${SETTINGS_PLUGIN_NAME}
 	install -d ${DESTDIR}/${DOVECOT_IMAP_SETTINGDIR}
@@ -146,7 +138,7 @@ install_man7: ${MAN7PAGES}
 
 
 clean:
-	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_OBJECTS} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${PLUGIN_OBJECTS} ${MAN1PAGES} ${MAN7PAGES}
 
 
 dist:

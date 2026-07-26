@@ -89,20 +89,21 @@ This is a 2-step process:
 
 1) Make Dovecot aware of the plugin.
    This happens in dovecot.conf's "protocol imap" section and comprises
-   - setting the mail_plugin_dir variable (if not already set)
-   - extending the mail_plugins variable by the plugin's name "fetchmail_wakeup"
+   - extending the "mail_plugins" section by inserting "fetchmail_wakeup = yes"
 
       protocol imap {
         # ...
 
-        mail_plugins = fetchmail_wakeup
-        mail_plugin_dir = /usr/lib/dovecot/modules/imap
+        mail_plugins {
+          # ...
+          fetchmail_wakeup = yes
+          #...
+        }
 
         # ...
       }
 
 2) Setting the plugin's configuration options.
-   This is done in dovecot.conf's plugin "section".
 
    fetchmail_wakeup supports four configuration options:
    - fetchmail_wakeup_commands = COMMAND-LIST
@@ -119,30 +120,28 @@ This is a 2-step process:
      Use NAME as the file to read the PID of a running fetchmail instance from,
      and awaken this instance by sending it the SIGUSR1 signal.
 
-   If fetchmail_wakeup_helper is given, it takes precedence and fetchmail_wakeup_pidfile
-   is ignored.
+   If fetchmail_wakeup_helper is given, it takes precedence and
+   fetchmail_wakeup_pidfile is ignored.
 
-      plugin {
-        # ...
+      # ...
 
-        ## fetchmail_wakeup plugin: awaken fetchmail on IMAP commands
+      ## fetchmail_wakeup plugin: awaken fetchmail on IMAP commands
 
-        # IMAP commands to intercept
-        # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)
-        fetchmail_wakeup_commands = STATUS, IDLE, NOOP, NOTIFY
+      # IMAP commands to intercept
+      # (this setting is optional and defaults to STATUS, IDLE, NOOP, NOTIFY)
+      fetchmail_wakeup_commands = STATUS, IDLE, NOOP, NOTIFY
 
-        # minimal interval (in seconds) between two awakenings of fetchmail
-        # (this setting is optional and defaults to 0, disabling rate-limiting)
-        fetchmail_wakeup_interval = 60
+      # minimal interval (in seconds) between two awakenings of fetchmail
+      # (this setting is optional and defaults to 0, disabling rate-limiting)
+      fetchmail_wakeup_interval = 60
 
-        # a helper program to notify fetchmail accordingly
-        fetchmail_wakeup_helper = /usr/bin/awaken-fetchmail
+      # a helper program to notify fetchmail accordingly
+      fetchmail_wakeup_helper = /usr/bin/awaken-fetchmail
 
-        # pid file of a running fetchmail instance
-        fetchmail_wakeup__pidfile = %h/fetchmail.pid
+      # pid file of a running fetchmail instance
+      fetchmail_wakeup__pidfile = %h/fetchmail.pid
 
-        # ...
-      }
+      # ...
 
    As the exmaple above shows, it is even possible to use Dovecot's variables
    in the configuration options, and thus awaken fetchmail daemons of multiple
@@ -150,8 +149,8 @@ This is a 2-step process:
 
    Starting with dovecot 2.0, the config file can be split into small parts that
    are consolidated automatically by dovecot.
-   To support this mode of splitting config files, an example config snippet
-   containing the "plugin" part is provided in:
+   To support this mode of splitting config files, an example config snippet is
+   provided in:
 
      example-config/conf.d/90-fetchmail_wakeup.conf
 

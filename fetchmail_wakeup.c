@@ -161,11 +161,14 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		const char *fetchmail_pid;
+		FILE *pidfile = NULL;
+
 		if (replace_percent_home(fetchmail_pidfile, user, &fetchmail_pid) < 0) {
 			i_warning("fetchmail_wakeup: error finding home for user %s.", user->username);
 			return;
 		}
-		FILE *pidfile = fopen(fetchmail_pid, "r");
+		pidfile = fopen(fetchmail_pid, "r");
+
 		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pid);
 
 		if (pidfile) {
@@ -200,16 +203,17 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 		struct mail_user *user = ctx->client->user;
 		const struct fetchmail_wakeup_settings *set;
 		const char *error;
+		enum fetchmail_command fetchmail_cmds = FETCHMAIL_NO_COMMAND;
+		enum fetchmail_command cmd = 1;
 
 		if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
 			e_error(user->event, "%s", error);
 			return;
 		}
-		enum fetchmail_command fetchmail_cmds = set->parsed_commands;
+		fetchmail_cmds = set->parsed_commands;
 
 		settings_free(set);
 
-		enum fetchmail_command cmd = 1;
 		for (unsigned int i = 0; fetchmail_command_names[i] != NULL; i++) {
 			if ((fetchmail_cmds & cmd) && (strcasecmp(fetchmail_command_names[i], ctx->name) == 0)) {
 				const char *username = (user->username != NULL) ? user->username : "(unknown user)";

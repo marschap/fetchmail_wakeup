@@ -226,7 +226,8 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 				break;
 			}
-			cmd = cmd < 1;
+			/* left-shift cmd */
+			cmd <<= 1;
 		}
 	}
 }

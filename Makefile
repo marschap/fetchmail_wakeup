@@ -69,13 +69,13 @@ build: ${SETTINGS_OBJECT_NAME} ${OBJECT_NAME} ${SETTINGS_PLUGIN_NAME} ${PLUGIN_N
 
 ${SETTINGS_OBJECT_NAME}: ${SETTINGS_OBJECT_SOURCES}
 	$(CC) -I${DOVECOT_INCDIR} \
-	      -Wall \
+	      -fPIC -Wall \
 	      -DHAVE_CONFIG_H \
 	      $< -c -o $@
 
 ${OBJECT_NAME}: ${OBJECT_SOURCES}
 	$(CC) -I${DOVECOT_INCDIR} \
-	      -Wall \
+	      -fPIC -Wall \
 	      -DHAVE_CONFIG_H \
 	      $< -c -o $@
 

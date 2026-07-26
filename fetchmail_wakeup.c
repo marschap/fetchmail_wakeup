@@ -23,9 +23,10 @@
 #include <unistd.h>
 #include <limits.h>
 #include "lib.h"
+#include "array.h"
 #include "imap-client.h"
 #include "ioloop.h"
-
+#include "fetchmail_wakeup_settings.h"
 
 /* check that we have the minimal dovecot version required for compilation */
 #if defined(DOVECOT_VERSION_MAJOR) && defined(DOVECOT_VERSION_MINOR)
@@ -35,47 +36,6 @@
 #else
 #	error *** dovecot version unknown: must be 2.1.0 or higher ***
 #endif
-
-
-#define FETCHMAIL_INTERVAL	0
-
-
-/*
- * make sure we have the right ABI version at runtime
- */
-const char *fetchmail_wakeup_plugin_version = DOVECOT_ABI_VERSION;
-
-
-/* commands that can be intercepted */
-static const char *default_cmds[] = {
-	"IDLE",
-	"NOOP",
-	"STATUS",
-	"NOTIFY",
-	NULL
-};
-
-/*
- * Get a interval value from config and parse it into a number (with fallback for failures)
- */
-static long getenv_interval(struct mail_user *user, const char *name, long fallback)
-{
-	if (name != NULL) {
-		const char *value_as_str = mail_user_plugin_getenv(user, name);
-
-		if (value_as_str != NULL) {
-			long value;
-
-			if ((str_to_long(value_as_str, &value) < 0) || (value < 0)) {
-				i_warning("fetchmail_wakeup: %s must be a non-negative number", name);
-				return fallback;
-			}
-			else
-				return value;
-		}
-	}
-	return fallback;
-}
 
 
 /*
@@ -93,6 +53,39 @@ static bool ratelimit(long interval)
 	return TRUE;
 }
 
+static int replace_percent_home(const char* string_possibly_containing_home, struct mail_user* user, const char** result_r) 
+{
+	char buf[1024] = "";;
+ 	char current;
+	char prev;
+	int i;
+	int j;
+	int k = 0;
+
+	for (i = 0; string_possibly_containing_home[i] != '\0'; i++) {
+		current = string_possibly_containing_home[i];
+		if (current == 'h' && prev == '%') {
+	        	const char *home_dir;
+			if (mail_user_get_home(user, &home_dir) <= 0) {
+				return -1;
+			}
+			k--; // overwrite already written %
+			for (j = 0; home_dir[j] != '\0'; j++) {
+			  buf[k] = home_dir[j];
+			  k++;
+			}
+		}
+		else {
+			buf[k] = current;
+			k++;
+		}
+		prev = current;
+	}
+	buf[k] = '\0';
+	*result_r = t_strdup_printf("%s", buf);
+	return 1;
+}
+
 
 /*
  * Send a signal to fetchmail or call a helper to awaken fetchmail
@@ -102,28 +95,35 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
 	const char *fetchmail_helper = NULL;
 	const char *fetchmail_pidfile = NULL;
-	long fetchmail_interval = FETCHMAIL_INTERVAL;
+	long fetchmail_interval;
+	const struct fetchmail_wakeup_settings *set;
+	const char *error;
 
-	/* convert config variable "fetchmail_interval" into a number */
-	fetchmail_interval = getenv_interval(user, "fetchmail_interval", FETCHMAIL_INTERVAL);
+        if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
+	       e_error(user->event, "%s", error);
+	       return;	
+	}
+	fetchmail_interval = set->fetchmail_interval;
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
+	#if defined(FETCHMAIL_WAKEUP_DEBUG)
 	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
-#endif
+	#endif
 
 	/* try rate-limiting only if interval is set to a value > 0 */
 	if (fetchmail_interval > 0) {
-		if (ratelimit(fetchmail_interval))
+		if (ratelimit(fetchmail_interval)) {
 			return;
+		}
 
-#if defined(FETCHMAIL_WAKEUP_DEBUG)
+		#if defined(FETCHMAIL_WAKEUP_DEBUG)
 		i_debug("fetchmail_wakeup: rate limit passed.");
-#endif
+		#endif
 	}
 
-	/* read config variables depending on the session */
-	fetchmail_helper = mail_user_plugin_getenv(user, "fetchmail_helper");
-	fetchmail_pidfile = mail_user_plugin_getenv(user, "fetchmail_pidfile");
+	fetchmail_helper = set->fetchmail_helper;
+	fetchmail_pidfile = set->fetchmail_pidfile;
+
+        settings_free(set);
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
@@ -155,9 +155,13 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	}
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
-		FILE *pidfile = fopen(fetchmail_pidfile, "r");
-
-		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pidfile);
+		const char *fetchmail_pid;
+                if (replace_percent_home(fetchmail_pidfile, user, &fetchmail_pid) < 0) {
+			i_warning("fetchmail_wakeup: error finding home for user %s.", user->username);
+			return;
+		}
+		FILE *pidfile = fopen(fetchmail_pid, "r");
+		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pid);
 
 		if (pidfile) {
 			pid_t pid = 0;
@@ -166,7 +170,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 				kill(pid, SIGUSR1);
 			else
 				i_warning("fetchmail_wakeup: error reading valid pid from %s",
-					fetchmail_pidfile);
+					fetchmail_pid);
 			fclose(pidfile);
 		}
 		else {
@@ -189,28 +193,31 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 {
 	if (ctx != NULL && ctx->name != NULL && ctx->client != NULL && ctx->client->user != NULL) {
 		struct mail_user *user = ctx->client->user;
-		const char *fetchmail_cmds = mail_user_plugin_getenv(user, "fetchmail_commands");
-		const char **cmds = default_cmds;
-		int i;
+		const struct fetchmail_wakeup_settings *set;
+		const char *error;
 
-		/* use configured commands if available */
-		if (fetchmail_cmds != NULL)
-			cmds = t_strsplit_spaces(fetchmail_cmds, ", ");
+        	if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
+	       		e_error(user->event, "%s", error);
+	       		return;	
+		}
+		enum fetchmail_command fetchmail_cmds = set->parsed_commands;
+		unsigned int i;
 
-		for (i = 0; cmds != NULL && cmds[i] != NULL; i++) {
-			if (strcasecmp(cmds[i], ctx->name) == 0) {
-				const char *username = (user->username != NULL)
-						       ? user->username
-						       : "(unknown user)";
+		settings_free(set);
 
-				i_info("fetchmail_wakeup: intercepting %s for %s.",
-				       cmds[i], username);
+		enum fetchmail_command cmd = 1;
+		for (i = 0; fetchmail_command_names[i] != NULL; i++) {
+			if ((fetchmail_cmds & cmd) && (strcasecmp(fetchmail_command_names[i], ctx->name) == 0)) {
+				const char *username = (user->username != NULL) ? user->username : "(unknown user)";
+
+				i_info("fetchmail_wakeup: intercepting %s for %s.", fetchmail_command_names[i], username);
 
 				/* try to wake up fetchmail */
 				fetchmail_wakeup(ctx);
 
 				break;
 			}
+	 		cmd = cmd < 1;	
 		}
 	}
 }
@@ -229,11 +236,10 @@ static void fetchmail_wakeup_null(struct client_command_context *ctx)
 /*
  * Plugin init: register callback functions into the into command hook chain
  */
-void fetchmail_wakeup_plugin_init(struct module *module)
+void fetchmail_wakeup_plugin_init(struct module *module ATTR_UNUSED)
 {
-	command_hook_register(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
-
 	i_info("fetchmail_wakeup: start intercepting IMAP commands.");
+	command_hook_register(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
 }
 
 /*
@@ -241,9 +247,8 @@ void fetchmail_wakeup_plugin_init(struct module *module)
  */
 void fetchmail_wakeup_plugin_deinit(void)
 {
-	command_hook_unregister(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
-
 	i_info("fetchmail_wakeup: stop intercepting IMAP commands.");
+	command_hook_unregister(fetchmail_wakeup_cmd, fetchmail_wakeup_null);
 }
 
 

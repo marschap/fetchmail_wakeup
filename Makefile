@@ -11,18 +11,19 @@ PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(s
 
 ## paths & directories ##
 # Dovecot's header directory
-DOVECOT_INCDIR = /usr/include/dovecot
+DOVECOT_INCDIR = /usr/local/include/dovecot 
 # Dovecot's IMAP plugin path
 DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
+DOVECOT_IMAP_SETTINGDIR = /usr/lib/dovecot/modules/settings
 # Dovecot's config directory (where dovecot.conf resides)
 DOVECOT_ETCDIR = /etc/dovecot
 # directory for binaries
-BINDIR = /usr/bin
+BINDIR = /usr//bin
 # directories for man pages sections 1 & 7
 MAN1DIR = /usr/share/man/man1
 MAN7DIR = /usr/share/man/man7
 # fetchmail's PID file (used in awaken-fetchmail)
-FETCHMAIL_PIDFILE = /run/fetchmail/fetchmail.pid
+FETCHMAIL_PIDFILE = %h/.fetchmail.pid
 
 ## compile time flags/defines ##
 # uncomment to turn on debugging
@@ -39,8 +40,14 @@ CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
 endif
 
 # plugin source & target name #
-PLUGIN_SOURCES = fetchmail_wakeup.c
+PLUGIN_OBJECTS = fetchmail_wakeup.o fetchmail_wakeup_settings.o
 PLUGIN_NAME = lib_fetchmail_wakeup_plugin.so
+SETTINGS_PLUGIN_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
+SETTINGS_PLUGIN_NAME = lib_fetchmail_wakeup_settings_plugin.so
+SETTINGS_OBJECT_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
+SETTINGS_OBJECT_NAME = fetchmail_wakeup_settings.o
+OBJECT_SOURCES = fetchmail_wakeup.c 
+OBJECT_NAME = fetchmail_wakeup.o
 
 # helper sources, target name & setuid account #
 HELPER_SOURCES = awaken-fetchmail.c
@@ -53,24 +60,38 @@ MAN7PAGES = fetchmail_wakeup.7
 
 #### configuration end ####
 
-
 .PHONY: all build install install_man clean
 
 all: build
 
-build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+build: ${SETTINGS_OBJECT_NAME} ${OBJECT_NAME} ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
-${PLUGIN_NAME}: ${PLUGIN_SOURCES}
+${SETTINGS_OBJECT_NAME}: ${SETTINGS_OBJECT_SOURCES} 
+	$(CC) -I${DOVECOT_INCDIR} \
+	      -Wall \
+	      -DHAVE_CONFIG_H \
+	      $< -c -o $@
+
+${OBJECT_NAME}: ${OBJECT_SOURCES} 
+	$(CC) -I${DOVECOT_INCDIR} \
+	      -Wall \
+	      -DHAVE_CONFIG_H \
+	      $< -c -o $@
+
+${SETTINGS_PLUGIN_NAME}: ${SETTINGS_PLUGIN_SOURCES} 
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
-	      -I${DOVECOT_INCDIR}/src \
-	      -I${DOVECOT_INCDIR}/src/lib \
-	      -I${DOVECOT_INCDIR}/src/lib-storage \
-	      -I${DOVECOT_INCDIR}/src/lib-mail \
-	      -I${DOVECOT_INCDIR}/src/lib-imap \
 	      -DHAVE_CONFIG_H \
 	      $< -o $@
+
+${PLUGIN_NAME}: ${PLUGIN_OBJECTS} 
+	$(CC) $(CPPFLAGS) $(LDFLAGS) \
+	      -fPIC -shared -Wall \
+	      -I${DOVECOT_INCDIR} \
+	      -DHAVE_CONFIG_H \
+              ${PLUGIN_OBJECTS} \
+	      -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
@@ -98,7 +119,11 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 
-install: install_plugin install_helper install_man
+install: install_settings_plugin install_plugin install_helper install_man
+
+install_settings_plugin: ${SETTINGS_PLUGIN_NAME}
+	install -d ${DESTDIR}/${DOVECOT_IMAP_SETTINGDIR}
+	install $< ${DESTDIR}/${DOVECOT_IMAP_SETTINGDIR}
 
 install_plugin: ${PLUGIN_NAME}
 	install -d ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
@@ -120,7 +145,7 @@ install_man7: ${MAN7PAGES}
 
 
 clean:
-	$(RM) ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_OBJECTS} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES} 
 
 
 dist:

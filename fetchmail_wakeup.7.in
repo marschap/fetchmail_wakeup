@@ -123,7 +123,7 @@ is ignored.
 \fBfetchmail_wakeup_helper\fP = BINDIR/awaken-fetchmail
 
 # pid file of a running fetchmail instance
-\fBfetchmail_wakeup_pidfile\fP = %h/fetchmail.pid
+\fBfetchmail_wakeup_pidfile\fP = %{home}/fetchmail.pid
 
 ...
 .fi

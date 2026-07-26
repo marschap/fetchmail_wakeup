@@ -8,10 +8,11 @@
  * - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
+ * - flexible, dovecot 2.4 compliant variable expansion
  *
  * Copyright (C) 2026 Johan Kunnen <johan@kunnen.frl>
  * - adaptions to dovecot 2.4 config
- * - %h expansion in fetchmail_wakeup_pidfile
+ * - original %h expansion in fetchmail_wakeup_pidfile
  *
  * License: LGPL v2.1
  *
@@ -31,6 +32,7 @@
 #include "imap-client.h"
 #include "ioloop.h"
 #include "settings.h"
+#include "var-expand.h"
 #include "fetchmail_wakeup_settings.h"
 
 
@@ -61,35 +63,33 @@ static bool ratelimit(long interval)
 	return TRUE;
 }
 
-static int replace_percent_home(const char* string_possibly_containing_home, struct mail_user* user, const char** result_r)
-{
-	char buf[1024] = "";;
-	char current;
-	char prev;
-	int k = 0;
 
-	for (int i = 0; string_possibly_containing_home[i] != '\0'; i++) {
-		current = string_possibly_containing_home[i];
-		if (current == 'h' && prev == '%') {
-			const char *home_dir;
-			if (mail_user_get_home(user, &home_dir) <= 0) {
-				return -1;
-			}
-			k--; // overwrite already written %
-			for (int j = 0; home_dir[j] != '\0'; j++) {
-				buf[k] = home_dir[j];
-				k++;
-			}
-		}
-		else {
-			buf[k] = current;
-			k++;
-		}
-		prev = current;
-	}
-	buf[k] = '\0';
-	*result_r = t_strdup_printf("%s", buf);
-	return 1;
+
+
+
+static int expand_variables(const char* source, struct mail_user* user, const char** result_r, const char **error_r)
+{
+	const char *homedir;
+
+	if (mail_user_get_home(user, &homedir) <= 0)
+		return -1;
+
+	const struct var_expand_table values[] = {
+		{ .key = "home",     .value = homedir },
+		{ .key = "user",     .value = user->username },
+		{ .key = "service",  .value = user->service },
+		{ .key = "protocol", .value = user->protocol },
+
+		VAR_EXPAND_TABLE_END
+	};
+	const struct var_expand_params params = {
+		.table = values
+	};
+
+	if (t_var_expand(source, &params, result_r, error_r) < 0)
+		return -1;
+
+	return 0;
 }
 
 
@@ -132,18 +132,26 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_wakeup_helper != NULL) && (*fetchmail_wakeup_helper != '\0')) {
+		const char *expanded;
+		const char *error;
 		pid_t pid;
 		int status;
 		char *const *argv;
 
-		i_info("fetchmail_wakeup: executing helper %s.", fetchmail_wakeup_helper);
+		if (expand_variables(fetchmail_wakeup_helper, user, &expanded, &error) < 0) {
+			i_warning("fetchmail_wakeup: var_expand(%s) failed: %s",
+				  fetchmail_wakeup_helper, error);
+			return;
+		}
+
+		i_info("fetchmail_wakeup: executing helper %s.", expanded);
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
 				i_warning("fetchmail_wakeup: fork() failed");
 				return;
 			case 0:		// child
-				argv = (char *const *) t_strsplit_spaces(fetchmail_wakeup_helper, " ");
+				argv = (char *const *) t_strsplit_spaces(expanded, " ");
 				if ((argv != NULL) && (*argv != NULL)) {
 					execv(argv[0], argv);
 					i_warning("fetchmail_wakeup: execv(%s) failed: %s",
@@ -160,16 +168,18 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	}
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_wakeup_pidfile != NULL) && (*fetchmail_wakeup_pidfile != '\0')) {
-		const char *fetchmail_pid;
+		const char *expanded;
+		const char *error;
 		FILE *pidfile = NULL;
 
-		if (replace_percent_home(fetchmail_wakeup_pidfile, user, &fetchmail_pid) < 0) {
-			i_warning("fetchmail_wakeup: error finding home for user %s.", user->username);
+		if (expand_variables(fetchmail_wakeup_pidfile, user, &expanded, &error) < 0) {
+			i_warning("fetchmail_wakeup: var_expand(%s) failed: %s",
+				  fetchmail_wakeup_pidfile, error);
 			return;
 		}
-		pidfile = fopen(fetchmail_pid, "r");
+		pidfile = fopen(expanded, "r");
 
-		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", fetchmail_pid);
+		i_info("fetchmail_wakeup: sending SIGUSR1 to process given in %s.", expanded);
 
 		if (pidfile) {
 			pid_t pid = 0;
@@ -177,8 +187,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 			if ((fscanf(pidfile, "%d", &pid) == 1) && (pid > 1))
 				kill(pid, SIGUSR1);
 			else
-				i_warning("fetchmail_wakeup: error reading valid pid from %s",
-					fetchmail_pid);
+				i_warning("fetchmail_wakeup: error reading valid pid from %s", expanded);
 			fclose(pidfile);
 		}
 		else {

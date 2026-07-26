@@ -42,10 +42,11 @@ Copyright (C) 2009-2026 Peter Marschall <peter@adpm.de>
 - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
+- flexible, dovecot 2.4 compliant variable expansion
 
 Copyright (C) 2026 Johan Kunnen <johan@kunnen.frl>
 - adaptions to dovecot 2.4 config
-- %h expansion in fetchmail_wakeup_pidfile
+- original %h expansion in fetchmail_wakeup_pidfile
 
 
 License
@@ -143,7 +144,7 @@ This is a 2-step process:
       fetchmail_wakeup_helper = /usr/bin/awaken-fetchmail
 
       # pid file of a running fetchmail instance
-      fetchmail_wakeup__pidfile = %h/fetchmail.pid
+      fetchmail_wakeup__pidfile = %{home}/.fetchmail.pid
 
       # ...
 

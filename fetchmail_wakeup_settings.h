@@ -8,9 +8,11 @@
  * - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
  * - rename to fetchmail_wakeup.c
  * - configuration via dovecot.config
+ * - flexible, dovecot 2.4 compliant variable expansion
  *
  * Copyright (C) 2026 Johan Kunnen <johan@kunnen.frl>
  * - adaptions to dovecot 2.4 config
+ * - original %h expansion in fetchmail_wakeup_pidfile
  *
  * License: LGPL v2.1
  *

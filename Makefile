@@ -23,7 +23,7 @@ BINDIR = /usr/bin
 MAN1DIR = /usr/share/man/man1
 MAN7DIR = /usr/share/man/man7
 # fetchmail's PID file (used in awaken-fetchmail)
-FETCHMAIL_PIDFILE = %h/.fetchmail.pid
+FETCHMAIL_PIDFILE = %{home}/.fetchmail.pid
 
 ## compile time flags/defines ##
 # uncomment to turn on debugging

@@ -38,10 +38,14 @@ Copyrights
 Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
 - original version named wake_up_fetchmail.c
 
-Copyright (C) 2009-2023 Peter Marschall <peter@adpm.de>
+Copyright (C) 2009-2026 Peter Marschall <peter@adpm.de>
 - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
 - rename to fetchmail_wakeup.c
 - configuration via dovecot.config
+
+Copyright (C) 2026 Johan Kunnen <johan@kunnen.frl>
+- adaptions to dovecot 2.4 config
+- %h expansion in fetchmail_wakeup_pidfile
 
 
 License

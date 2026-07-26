@@ -24,10 +24,10 @@
 #include "settings-parser.h"
 
 enum fetchmail_command {
-	FETCHMAIL_COMMAND_NOOP   	= 0x01,
-	FETCHMAIL_COMMAND_STATUS 	= 0x02,
-	FETCHMAIL_COMMAND_IDLE   	= 0x04,
-	FETCHMAIL_COMMAND_NOTIFY 	= 0x08
+	FETCHMAIL_COMMAND_NOOP		= 0x01,
+	FETCHMAIL_COMMAND_STATUS	= 0x02,
+	FETCHMAIL_COMMAND_IDLE		= 0x04,
+	FETCHMAIL_COMMAND_NOTIFY	= 0x08
 };
 
 static const char *fetchmail_command_names[] = {
@@ -40,7 +40,7 @@ static const char *fetchmail_command_names[] = {
 
 struct fetchmail_wakeup_settings {
 	pool_t pool;
-	
+
 	ARRAY_TYPE(const_string) fetchmail_commands;
 	unsigned int fetchmail_interval;
 	const char *fetchmail_helper;

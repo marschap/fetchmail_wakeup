@@ -39,7 +39,7 @@ static const struct setting_define fetchmail_wakeup_setting_defines[] = {
 };
 
 static const struct fetchmail_wakeup_settings fetchmail_wakeup_default_settings = {
-	.fetchmail_commands =  ARRAY_INIT,
+	.fetchmail_commands = ARRAY_INIT,
 	.fetchmail_interval = 60,
 	.fetchmail_helper = "",
 	.fetchmail_pidfile = "/run/fetchmail/fetchmail.pid",
@@ -102,10 +102,10 @@ const struct setting_parser_info fetchmail_wakeup_setting_parser_info = {
 	.pool_offset1 = 1 + offsetof(struct fetchmail_wakeup_settings, pool),
 };
 
-static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool ATTR_UNUSED, const char **error_r) 
+static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool ATTR_UNUSED, const char **error_r)
 {
 	struct fetchmail_wakeup_settings *set = _set;
-	
+
 	if (wakeup_parse_commands(&set->fetchmail_commands, &set->parsed_commands, error_r)) {
 		return FALSE;
 	}

@@ -53,10 +53,10 @@ static bool ratelimit(long interval)
 	return TRUE;
 }
 
-static int replace_percent_home(const char* string_possibly_containing_home, struct mail_user* user, const char** result_r) 
+static int replace_percent_home(const char* string_possibly_containing_home, struct mail_user* user, const char** result_r)
 {
 	char buf[1024] = "";;
- 	char current;
+	char current;
 	char prev;
 	int i;
 	int j;
@@ -65,14 +65,14 @@ static int replace_percent_home(const char* string_possibly_containing_home, str
 	for (i = 0; string_possibly_containing_home[i] != '\0'; i++) {
 		current = string_possibly_containing_home[i];
 		if (current == 'h' && prev == '%') {
-	        	const char *home_dir;
+			const char *home_dir;
 			if (mail_user_get_home(user, &home_dir) <= 0) {
 				return -1;
 			}
 			k--; // overwrite already written %
 			for (j = 0; home_dir[j] != '\0'; j++) {
-			  buf[k] = home_dir[j];
-			  k++;
+				buf[k] = home_dir[j];
+				k++;
 			}
 		}
 		else {
@@ -99,9 +99,9 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	const struct fetchmail_wakeup_settings *set;
 	const char *error;
 
-        if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
-	       e_error(user->event, "%s", error);
-	       return;	
+	if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
+		e_error(user->event, "%s", error);
+		return;
 	}
 	fetchmail_interval = set->fetchmail_interval;
 
@@ -123,7 +123,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	fetchmail_helper = set->fetchmail_helper;
 	fetchmail_pidfile = set->fetchmail_pidfile;
 
-        settings_free(set);
+	settings_free(set);
 
 	/* if a helper application is defined, then call it */
 	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
@@ -156,7 +156,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
 	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
 		const char *fetchmail_pid;
-                if (replace_percent_home(fetchmail_pidfile, user, &fetchmail_pid) < 0) {
+		if (replace_percent_home(fetchmail_pidfile, user, &fetchmail_pid) < 0) {
 			i_warning("fetchmail_wakeup: error finding home for user %s.", user->username);
 			return;
 		}
@@ -196,9 +196,9 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 		const struct fetchmail_wakeup_settings *set;
 		const char *error;
 
-        	if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
-	       		e_error(user->event, "%s", error);
-	       		return;	
+		if (settings_get(user->event, get_setting_parser_info(), 0, &set, &error) < 0) {
+			e_error(user->event, "%s", error);
+			return;
 		}
 		enum fetchmail_command fetchmail_cmds = set->parsed_commands;
 		unsigned int i;
@@ -217,7 +217,7 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
 
 				break;
 			}
-	 		cmd = cmd < 1;	
+			cmd = cmd < 1;
 		}
 	}
 }
@@ -229,7 +229,7 @@ static void fetchmail_wakeup_cmd(struct client_command_context *ctx)
  */
 static void fetchmail_wakeup_null(struct client_command_context *ctx)
 {
-        /* unused */
+	/* unused */
 }
 
 

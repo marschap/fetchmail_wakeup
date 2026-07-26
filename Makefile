@@ -11,7 +11,7 @@ PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(s
 
 ## paths & directories ##
 # Dovecot's header directory
-DOVECOT_INCDIR = /usr/local/include/dovecot 
+DOVECOT_INCDIR = /usr/local/include/dovecot
 # Dovecot's IMAP plugin path
 DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
 DOVECOT_IMAP_SETTINGDIR = /usr/lib/dovecot/modules/settings
@@ -46,7 +46,7 @@ SETTINGS_PLUGIN_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.
 SETTINGS_PLUGIN_NAME = lib_fetchmail_wakeup_settings_plugin.so
 SETTINGS_OBJECT_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
 SETTINGS_OBJECT_NAME = fetchmail_wakeup_settings.o
-OBJECT_SOURCES = fetchmail_wakeup.c 
+OBJECT_SOURCES = fetchmail_wakeup.c
 OBJECT_NAME = fetchmail_wakeup.o
 
 # helper sources, target name & setuid account #
@@ -66,26 +66,26 @@ all: build
 
 build: ${SETTINGS_OBJECT_NAME} ${OBJECT_NAME} ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
-${SETTINGS_OBJECT_NAME}: ${SETTINGS_OBJECT_SOURCES} 
+${SETTINGS_OBJECT_NAME}: ${SETTINGS_OBJECT_SOURCES}
 	$(CC) -I${DOVECOT_INCDIR} \
 	      -Wall \
 	      -DHAVE_CONFIG_H \
 	      $< -c -o $@
 
-${OBJECT_NAME}: ${OBJECT_SOURCES} 
+${OBJECT_NAME}: ${OBJECT_SOURCES}
 	$(CC) -I${DOVECOT_INCDIR} \
 	      -Wall \
 	      -DHAVE_CONFIG_H \
 	      $< -c -o $@
 
-${SETTINGS_PLUGIN_NAME}: ${SETTINGS_PLUGIN_SOURCES} 
+${SETTINGS_PLUGIN_NAME}: ${SETTINGS_PLUGIN_SOURCES}
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
 	      -DHAVE_CONFIG_H \
 	      $< -o $@
 
-${PLUGIN_NAME}: ${PLUGIN_OBJECTS} 
+${PLUGIN_NAME}: ${PLUGIN_OBJECTS}
 	$(CC) $(CPPFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
@@ -145,7 +145,7 @@ install_man7: ${MAN7PAGES}
 
 
 clean:
-	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_OBJECTS} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES} 
+	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_OBJECTS} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
 
 dist:

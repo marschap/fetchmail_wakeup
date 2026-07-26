@@ -69,11 +69,11 @@ static int wakeup_parse_commands(const ARRAY_TYPE(const_string) *arr,
 				 enum fetchmail_command *commands_r, const char **error_r)
 {
 	const char *str;
-	enum fetchmail_command command;
 
 	*commands_r = 0;
 	array_foreach_elem(arr, str) {
-		command = fetchmail_command_find(str);
+		enum fetchmail_command command = fetchmail_command_find(str);
+
 		if (command == 0) {
 			*error_r = t_strdup_printf(
 				"Unknown command in fetchmail_commands: '%s'", str);
@@ -81,9 +81,10 @@ static int wakeup_parse_commands(const ARRAY_TYPE(const_string) *arr,
 		}
 		*commands_r |= command;
 	}
-	if (*commands_r == 0) {
-		*commands_r = FETCHMAIL_COMMAND_NOOP | FETCHMAIL_COMMAND_STATUS | FETCHMAIL_COMMAND_IDLE | FETCHMAIL_COMMAND_NOTIFY;
-	}
+
+	if (*commands_r == 0)
+		*commands_r = FETCHMAIL_ALL_COMMANDS;
+
 	return 0;
 }
 

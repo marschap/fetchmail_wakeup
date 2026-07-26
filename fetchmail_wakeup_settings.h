@@ -45,10 +45,10 @@ static const char *fetchmail_command_names[] = {
 struct fetchmail_wakeup_settings {
 	pool_t pool;
 
-	ARRAY_TYPE(const_string) fetchmail_commands;
-	unsigned int fetchmail_interval;
-	const char *fetchmail_helper;
-	const char *fetchmail_pidfile;
+	ARRAY_TYPE(const_string) fetchmail_wakeup_commands;
+	unsigned int fetchmail_wakeup_interval;
+	const char *fetchmail_wakeup_helper;
+	const char *fetchmail_wakeup_pidfile;
 
 	enum fetchmail_command parsed_commands;
 };

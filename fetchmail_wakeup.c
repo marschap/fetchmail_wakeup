@@ -95,9 +95,9 @@ static int replace_percent_home(const char* string_possibly_containing_home, str
 static void fetchmail_wakeup(struct client_command_context *ctx)
 {
 	struct mail_user *user = ctx->client->user;	/* != NULL as checked by caller */
-	const char *fetchmail_helper = NULL;
-	const char *fetchmail_pidfile = NULL;
-	long fetchmail_interval = FETCHMAIL_INTERVAL;
+	const char *fetchmail_wakeup_helper = NULL;
+	const char *fetchmail_wakeup_pidfile = NULL;
+	long fetchmail_wakeup_interval = FETCHMAIL_INTERVAL;
 	const struct fetchmail_wakeup_settings *set;
 	const char *error;
 
@@ -105,15 +105,15 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		e_error(user->event, "%s", error);
 		return;
 	}
-	fetchmail_interval = set->fetchmail_interval;
+	fetchmail_wakeup_interval = set->fetchmail_wakeup_interval;
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
-	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_interval, ctx->name);
+	i_debug("fetchmail_wakeup: interval %ld used for %s.", fetchmail_wakeup_interval, ctx->name);
 #endif
 
 	/* try rate-limiting only if interval is set to a value > 0 */
-	if (fetchmail_interval > 0) {
-		if (ratelimit(fetchmail_interval))
+	if (fetchmail_wakeup_interval > 0) {
+		if (ratelimit(fetchmail_wakeup_interval))
 			return;
 
 #if defined(FETCHMAIL_WAKEUP_DEBUG)
@@ -121,25 +121,25 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 #endif
 	}
 
-	fetchmail_helper = set->fetchmail_helper;
-	fetchmail_pidfile = set->fetchmail_pidfile;
+	fetchmail_wakeup_helper = set->fetchmail_wakeup_helper;
+	fetchmail_wakeup_pidfile = set->fetchmail_wakeup_pidfile;
 
 	settings_free(set);
 
 	/* if a helper application is defined, then call it */
-	if ((fetchmail_helper != NULL) && (*fetchmail_helper != '\0')) {
+	if ((fetchmail_wakeup_helper != NULL) && (*fetchmail_wakeup_helper != '\0')) {
 		pid_t pid;
 		int status;
 		char *const *argv;
 
-		i_info("fetchmail_wakeup: executing helper %s.", fetchmail_helper);
+		i_info("fetchmail_wakeup: executing helper %s.", fetchmail_wakeup_helper);
 
 		switch (pid = fork()) {
 			case -1:	// fork failed
 				i_warning("fetchmail_wakeup: fork() failed");
 				return;
 			case 0:		// child
-				argv = (char *const *) t_strsplit_spaces(fetchmail_helper, " ");
+				argv = (char *const *) t_strsplit_spaces(fetchmail_wakeup_helper, " ");
 				if ((argv != NULL) && (*argv != NULL)) {
 					execv(argv[0], argv);
 					i_warning("fetchmail_wakeup: execv(%s) failed: %s",
@@ -147,7 +147,7 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 					exit(1);
 				}
 				else {
-					i_warning("fetchmail_wakeup: illegal fetchmail_helper");
+					i_warning("fetchmail_wakeup: illegal fetchmail_wakeup_helper");
 					exit(1);
 				}
 			default:	// parent
@@ -155,11 +155,11 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		}
 	}
 	/* otherwise if a pid file name is given, signal fetchmail with that pid */
-	else if ((fetchmail_pidfile != NULL) && (*fetchmail_pidfile != '\0')) {
+	else if ((fetchmail_wakeup_pidfile != NULL) && (*fetchmail_wakeup_pidfile != '\0')) {
 		const char *fetchmail_pid;
 		FILE *pidfile = NULL;
 
-		if (replace_percent_home(fetchmail_pidfile, user, &fetchmail_pid) < 0) {
+		if (replace_percent_home(fetchmail_wakeup_pidfile, user, &fetchmail_pid) < 0) {
 			i_warning("fetchmail_wakeup: error finding home for user %s.", user->username);
 			return;
 		}
@@ -179,12 +179,12 @@ static void fetchmail_wakeup(struct client_command_context *ctx)
 		}
 		else {
 			i_warning("fetchmail_wakeup: error opening %s",
-				 fetchmail_pidfile);
+				 fetchmail_wakeup_pidfile);
 		}
 	}
 	/* otherwise warn on missing configuration */
 	else {
-		i_warning("fetchmail_wakeup: neither fetchmail_pidfile nor fetchmail_helper given");
+		i_warning("fetchmail_wakeup: neither fetchmail_wakeup_pidfile nor fetchmail_wakeup_helper given");
 	}
 }
 

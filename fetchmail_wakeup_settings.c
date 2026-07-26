@@ -30,26 +30,26 @@ extern const struct setting_parser_info *fetchmail_wakeup_plugin_setting_infos[]
 #define DEF(type, name) \
 	SETTING_DEFINE_STRUCT_##type(#name, name, struct fetchmail_wakeup_settings)
 static const struct setting_define fetchmail_wakeup_setting_defines[] = {
-	DEF(BOOLLIST, fetchmail_commands),
-	DEF(UINT, fetchmail_interval),
-	DEF(STR, fetchmail_helper),
-	DEF(STR, fetchmail_pidfile),
+	DEF(BOOLLIST, fetchmail_wakeup_commands),
+	DEF(UINT, fetchmail_wakeup_interval),
+	DEF(STR, fetchmail_wakeup_helper),
+	DEF(STR, fetchmail_wakeup_pidfile),
 
 	SETTING_DEFINE_LIST_END
 };
 
 static const struct fetchmail_wakeup_settings fetchmail_wakeup_default_settings = {
-	.fetchmail_commands = ARRAY_INIT,
-	.fetchmail_interval = FETCHMAIL_INTERVAL,
-	.fetchmail_helper = "",
-	.fetchmail_pidfile = FETCHMAIL_PIDFILE,
+	.fetchmail_wakeup_commands = ARRAY_INIT,
+	.fetchmail_wakeup_interval = FETCHMAIL_INTERVAL,
+	.fetchmail_wakeup_helper = "",
+	.fetchmail_wakeup_pidfile = FETCHMAIL_PIDFILE,
 };
 
 static const struct setting_keyvalue fetchmail_wakeup_default_settings_keyvalue[] = {
-	{ "fetchmail_commands/status", "yes" },
-	{ "fetchmail_commands/idle", "yes" },
-	{ "fetchmail_commands/noop", "yes" },
-	{ "fetchmail_commands/notify", "yes" },
+	{ "fetchmail_wakeup_commands/status", "yes" },
+	{ "fetchmail_wakeup_commands/idle", "yes" },
+	{ "fetchmail_wakeup_commands/noop", "yes" },
+	{ "fetchmail_wakeup_commands/notify", "yes" },
 	{ NULL, NULL }
 };
 
@@ -76,7 +76,7 @@ static int wakeup_parse_commands(const ARRAY_TYPE(const_string) *arr,
 
 		if (command == 0) {
 			*error_r = t_strdup_printf(
-				"Unknown command in fetchmail_commands: '%s'", str);
+				"Unknown command in fetchmail_wakeup_commands: '%s'", str);
 			return -1;
 		}
 		*commands_r |= command;
@@ -105,7 +105,7 @@ static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool ATTR_UNUSED,
 {
 	struct fetchmail_wakeup_settings *set = _set;
 
-	if (wakeup_parse_commands(&set->fetchmail_commands, &set->parsed_commands, error_r)) {
+	if (wakeup_parse_commands(&set->fetchmail_wakeup_commands, &set->parsed_commands, error_r)) {
 		return FALSE;
 	}
 	return TRUE;

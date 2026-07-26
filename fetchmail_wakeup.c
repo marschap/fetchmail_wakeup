@@ -26,6 +26,7 @@
 #include "array.h"
 #include "imap-client.h"
 #include "ioloop.h"
+#include "settings.h"
 #include "fetchmail_wakeup_settings.h"
 
 

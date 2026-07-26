@@ -16,13 +16,6 @@
 #ifndef FETCHMAIL_WAKEUP_SETTINGS_PLUGIN_H
 #define FETCHMAIL_WAKEUP_SETTINGS_PLUGIN_H
 
-#include <sys/types.h>
-#include <ctype.h>
-#include "lib.h"
-#include "module-dir.h"
-#include "settings.h"
-#include "settings-parser.h"
-
 enum fetchmail_command {
 	FETCHMAIL_COMMAND_NOOP		= 0x01,
 	FETCHMAIL_COMMAND_STATUS	= 0x02,
@@ -51,17 +44,4 @@ struct fetchmail_wakeup_settings {
 
 const struct setting_parser_info *get_setting_parser_info(void);
 
-
-/*
- * Plugin init
- */
-void fetchmail_wakeup_settings_plugin_init(struct module *module ATTR_UNUSED);
-
-/*
- * Plugin deinit
- */
-void fetchmail_wakeup_settings_plugin_deinit(void);
-
 #endif
-
-/* EOF */

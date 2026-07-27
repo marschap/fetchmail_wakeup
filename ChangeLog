@@ -1,3 +1,36 @@
+Release 2.4.0-rc1
+=================
+
+2026-07-27 Peter Marschall <peter@adpm.de>
+* overhaul documentation
+
+2026-07-26 Peter Marschall <peter@adpm.de>
+* Makefile: rename some variables & adapt users
+* example config: bring in line with code
+* convert README to a Markdown document
+* implement flexible, dovecot 2.4 compliant variable expansion
+* remove unnecessary extern declarations
+* update year in copyright messages & add Johan's
+* documentation: remove reference to pre-2.4 plugin section
+* consistently name config variables fetchmail_wakeup_...
+* use DOVECOT_PREREQ() macro to perform version check
+
+2026-07-25 Peter Marschall <peter@adpm.de>
+* move variable declarations to beginning of blocks
+* extend fetchmail_command enum
+* use #define's to avoid magic constants
+* cleanup header file: don't make it include other headers
+* Makefile: add CPPFLAGS and CFLAGS to compilation step
+* Makefile: cleanup
+* make detection of fetchmail_commands case independent
+* Makefile: add -fPIC to compilation step
+* make loop variables local to the for-loop
+* fix logical bug: perform a left-shift
+* Makefile: slight cleanup
+* minimize diff by undoing cosmetic changes
+* space police: remove trailing spaces & tabs
+* import Johan's code
+
 Release 2.3.1
 =============
 

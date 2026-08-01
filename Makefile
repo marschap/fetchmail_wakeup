@@ -44,7 +44,7 @@ PLUGIN_SOURCES = fetchmail_wakeupc.c
 PLUGIN_OBJECTS = fetchmail_wakeup.o fetchmail_wakeup_settings.o
 PLUGIN_NAME = lib_fetchmail_wakeup_plugin.so
 SETTINGS_PLUGIN_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
-SETTINGS_PLUGIN_NAME = lib_fetchmail_wakeup_settings_plugin.so
+SETTINGS_PLUGIN_NAME = libfetchmail_wakeup_settings.so
 
 # helper sources, target name & setuid account #
 HELPER_SOURCES = awaken-fetchmail.c

@@ -27,7 +27,7 @@
 #include "settings-parser.h"
 #include "fetchmail_wakeup_settings.h"
 
-const char *fetchmail_wakeup_settings_plugin_version = DOVECOT_ABI_VERSION;
+const char *fetchmail_wakeup_settings_version = DOVECOT_ABI_VERSION;
 
 #undef DEF
 #define DEF(type, name) \
@@ -93,7 +93,7 @@ static int wakeup_parse_commands(const ARRAY_TYPE(const_string) *arr,
 
 const struct setting_parser_info fetchmail_wakeup_setting_parser_info = {
 	.name = "fetchmail_wakeup",
-	.plugin_dependency = "lib_fetchmail_wakeup_settings_plugin",
+	.plugin_dependency = "libfetchmail_wakeup_settings",
 
 	.defines = fetchmail_wakeup_setting_defines,
 	.defaults = &fetchmail_wakeup_default_settings,
@@ -117,7 +117,7 @@ static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool ATTR_UNUSED,
 /*
  * Plugin init
  */
-void fetchmail_wakeup_settings_plugin_init(struct module *module ATTR_UNUSED)
+void fetchmail_wakeup_settings_init(struct module *module ATTR_UNUSED)
 {
 	/* nope */
 }
@@ -125,14 +125,14 @@ void fetchmail_wakeup_settings_plugin_init(struct module *module ATTR_UNUSED)
 /*
  * Plugin deinit
  */
-void fetchmail_wakeup_settings_plugin_deinit(void)
+void fetchmail_wakeup_settings_deinit(void)
 {
 	/* nope */
 }
 
 const struct setting_parser_info fetchmail_wakeup_setting_parser_info;
 
-const struct setting_parser_info *fetchmail_wakeup_settings_plugin_set_infos[] = {
+const struct setting_parser_info *fetchmail_wakeup_settings_set_infos[] = {
 	&fetchmail_wakeup_setting_parser_info,
 	NULL
 };

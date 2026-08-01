@@ -3,11 +3,15 @@
 
 set -e
 
-if [ -x "/etc/init.d/dovecot" ]; then
-	if [ -x /usr/sbin/invoke-rc.d ] ; then
-		invoke-rc.d dovecot stop
-	else
-		/etc/init.d/dovecot stop
+if [ -d /run/systemd/system ]; then
+	deb-systemd-invoke restart dovecot || :
+else
+	if [ -x "/etc/init.d/dovecot" ]; then
+		if [ -x /usr/sbin/invoke-rc.d ]; then
+			invoke-rc.d dovecot start
+		else
+			/etc/init.d/dovecot start
+		fi
 	fi
 fi
 

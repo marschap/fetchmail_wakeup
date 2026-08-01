@@ -20,11 +20,15 @@ if [ "$1" = "configure" ]; then
 	fi
 fi
 
-if [ -x "/etc/init.d/dovecot" ]; then
-	if [ -x /usr/sbin/invoke-rc.d ]; then
-		invoke-rc.d dovecot restart
-	else
-		/etc/init.d/dovecot restart
+if [ -d /run/systemd/system ]; then
+	deb-systemd-invoke restart dovecot || :
+else
+	if [ -x "/etc/init.d/dovecot" ]; then
+		if [ -x /usr/sbin/invoke-rc.d ]; then
+			invoke-rc.d dovecot start
+		else
+			/etc/init.d/dovecot start
+		fi
 	fi
 fi
 

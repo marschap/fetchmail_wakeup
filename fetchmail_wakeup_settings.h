@@ -40,10 +40,10 @@ enum fetchmail_command {
 };
 
 static const char *fetchmail_command_names[] = {
-	"noop",
-	"status",
-	"idle",
-	"notify",
+	"NOOP",
+	"STATUS",
+	"IDLE",
+	"NOTIFY",
 	NULL
 };
 

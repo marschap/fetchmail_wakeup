@@ -1,1 +1,5 @@
 example-config/conf.d/*.conf usr/share/dovecot/conf.d/
+usr/bin/awaken-fetchmail usr/bin/
+usr/lib/dovecot/modules/lib90_fetchmail_wakeup_plugin.so usr/lib/dovecot/modules/
+usr/lib/dovecot/modules/settings/libfetchmail_wakeup_settings.so usr/lib/dovecot/modules/settings/
+

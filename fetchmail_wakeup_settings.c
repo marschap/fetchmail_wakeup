@@ -1,0 +1,144 @@
+/*
+ * Fetchmail notification IMAP plugin for Dovecot
+ *
+ * Copyright (C) 2007 Guillaume Chazarain <guichaz@yahoo.fr>
+ * - original version named wake_up_fetchmail.c
+ *
+ * Copyright (C) 2009-2026 Peter Marschall <peter@adpm.de>
+ * - adaptions to dovecot 1.1, 1.2 [both deprecated], and 2.x
+ * - rename to fetchmail_wakeup.c
+ * - configuration via dovecot.config
+ * - flexible, dovecot 2.4 compliant variable expansion
+ *
+ * Copyright (C) 2026 Johan Kunnen <johan@kunnen.frl>
+ * - adaptions to dovecot 2.4 config
+ * - original %h expansion in fetchmail_wakeup_pidfile
+ *
+ * License: LGPL v2.1
+ *
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "lib.h"
+#include "array.h"
+#include "settings.h"
+#include "module-dir.h"
+#include "settings-parser.h"
+#include "fetchmail_wakeup_settings.h"
+
+const char *fetchmail_wakeup_settings_version = DOVECOT_ABI_VERSION;
+
+#undef DEF
+#define DEF(type, name) \
+	SETTING_DEFINE_STRUCT_##type(#name, name, struct fetchmail_wakeup_settings)
+static const struct setting_define fetchmail_wakeup_setting_defines[] = {
+	DEF(BOOLLIST, fetchmail_wakeup_commands),
+	DEF(UINT, fetchmail_wakeup_interval),
+	DEF(STR, fetchmail_wakeup_helper),
+	DEF(STR, fetchmail_wakeup_pidfile),
+
+	SETTING_DEFINE_LIST_END
+};
+
+static const struct fetchmail_wakeup_settings fetchmail_wakeup_default_settings = {
+	.fetchmail_wakeup_commands = ARRAY_INIT,
+	.fetchmail_wakeup_interval = FETCHMAIL_INTERVAL,
+	.fetchmail_wakeup_helper = "",
+	.fetchmail_wakeup_pidfile = FETCHMAIL_PIDFILE,
+};
+
+static const struct setting_keyvalue fetchmail_wakeup_default_settings_keyvalue[] = {
+	{ "fetchmail_wakeup_commands/status", "yes" },
+	{ "fetchmail_wakeup_commands/idle", "yes" },
+	{ "fetchmail_wakeup_commands/noop", "yes" },
+	{ "fetchmail_wakeup_commands/notify", "yes" },
+	{ NULL, NULL }
+};
+
+static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool, const char **error_r);
+
+static enum fetchmail_command fetchmail_command_find(const char *name)
+{
+	for (unsigned int i = 0; fetchmail_command_names[i] != NULL; i++) {
+		if (strcasecmp(name, fetchmail_command_names[i]) == 0) {
+			return 1 << i;
+		}
+	}
+	return 0;
+}
+
+static int wakeup_parse_commands(const ARRAY_TYPE(const_string) *arr,
+				 enum fetchmail_command *commands_r, const char **error_r)
+{
+	const char *str;
+
+	*commands_r = 0;
+	array_foreach_elem(arr, str) {
+		enum fetchmail_command command = fetchmail_command_find(str);
+
+		if (command == 0) {
+			*error_r = t_strdup_printf(
+				"Unknown command in fetchmail_wakeup_commands: '%s'", str);
+			return -1;
+		}
+		*commands_r |= command;
+	}
+
+	if (*commands_r == 0)
+		*commands_r = FETCHMAIL_ALL_COMMANDS;
+
+	return 0;
+}
+
+const struct setting_parser_info fetchmail_wakeup_setting_parser_info = {
+	.name = "fetchmail_wakeup",
+	.plugin_dependency = "libfetchmail_wakeup_settings",
+
+	.defines = fetchmail_wakeup_setting_defines,
+	.defaults = &fetchmail_wakeup_default_settings,
+	.default_settings = fetchmail_wakeup_default_settings_keyvalue,
+	.check_func = fetchmail_wakeup_settings_check,
+
+	.struct_size = sizeof(struct fetchmail_wakeup_settings),
+	.pool_offset1 = 1 + offsetof(struct fetchmail_wakeup_settings, pool),
+};
+
+static bool fetchmail_wakeup_settings_check(void *_set, pool_t pool ATTR_UNUSED, const char **error_r)
+{
+	struct fetchmail_wakeup_settings *set = _set;
+
+	if (wakeup_parse_commands(&set->fetchmail_wakeup_commands, &set->parsed_commands, error_r)) {
+		return FALSE;
+	}
+	return TRUE;
+}
+
+/*
+ * Plugin init
+ */
+void fetchmail_wakeup_settings_init(struct module *module ATTR_UNUSED)
+{
+	/* nope */
+}
+
+/*
+ * Plugin deinit
+ */
+void fetchmail_wakeup_settings_deinit(void)
+{
+	/* nope */
+}
+
+const struct setting_parser_info fetchmail_wakeup_setting_parser_info;
+
+const struct setting_parser_info *fetchmail_wakeup_settings_set_infos[] = {
+	&fetchmail_wakeup_setting_parser_info,
+	NULL
+};
+
+const struct setting_parser_info *get_setting_parser_info(void) {
+	return &fetchmail_wakeup_setting_parser_info;
+}
+
+/* EOF */

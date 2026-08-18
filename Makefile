@@ -13,7 +13,8 @@ PACKAGE_VERSION = $(lastword $(sort $(subst upstream/,, $(filter upstream/%, $(s
 # Dovecot's header directory
 DOVECOT_INCDIR = /usr/include/dovecot
 # Dovecot's IMAP plugin path
-DOVECOT_IMAP_MODULEDIR = /usr/lib/dovecot/modules
+DOVECOT_MODULEDIR = /usr/lib/dovecot/modules
+DOVECOT_SETTINGDIR = ${DOVECOT_MODULEDIR}/settings
 # Dovecot's config directory (where dovecot.conf resides)
 DOVECOT_ETCDIR = /etc/dovecot
 # directory for binaries
@@ -22,7 +23,7 @@ BINDIR = /usr/bin
 MAN1DIR = /usr/share/man/man1
 MAN7DIR = /usr/share/man/man7
 # fetchmail's PID file (used in awaken-fetchmail)
-FETCHMAIL_PIDFILE = /run/fetchmail/fetchmail.pid
+FETCHMAIL_PIDFILE = %{home}/.fetchmail.pid
 
 ## compile time flags/defines ##
 # uncomment to turn on debugging
@@ -39,8 +40,11 @@ CPPFLAGS += -DFETCHMAIL_WAKEUP_DEBUG
 endif
 
 # plugin source & target name #
-PLUGIN_SOURCES = fetchmail_wakeup.c
+PLUGIN_SOURCES = fetchmail_wakeupc.c
+PLUGIN_OBJECTS = fetchmail_wakeup.o fetchmail_wakeup_settings.o
 PLUGIN_NAME = lib_fetchmail_wakeup_plugin.so
+SETTINGS_PLUGIN_SOURCES = fetchmail_wakeup_settings.c fetchmail_wakeup_settings.h
+SETTINGS_PLUGIN_NAME = libfetchmail_wakeup_settings.so
 
 # helper sources, target name & setuid account #
 HELPER_SOURCES = awaken-fetchmail.c
@@ -54,23 +58,35 @@ MAN7PAGES = fetchmail_wakeup.7
 #### configuration end ####
 
 
-.PHONY: all build install install_man clean
+.PHONY: all build install install_man clean dist \
+	install_plugins install_helper install_man \
+	install_settings_plugin install_plugin \
+	install_man1 install_man7
 
 all: build
 
-build: ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+build: ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
 
-${PLUGIN_NAME}: ${PLUGIN_SOURCES}
+%.o: %.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	      -I${DOVECOT_INCDIR} \
+	      -fPIC -Wall \
+	      -DHAVE_CONFIG_H \
+	      $< -c -o $@
+
+${SETTINGS_PLUGIN_NAME}: ${SETTINGS_PLUGIN_SOURCES}
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
 	      -fPIC -shared -Wall \
 	      -I${DOVECOT_INCDIR} \
-	      -I${DOVECOT_INCDIR}/src \
-	      -I${DOVECOT_INCDIR}/src/lib \
-	      -I${DOVECOT_INCDIR}/src/lib-storage \
-	      -I${DOVECOT_INCDIR}/src/lib-mail \
-	      -I${DOVECOT_INCDIR}/src/lib-imap \
 	      -DHAVE_CONFIG_H \
 	      $< -o $@
+
+${PLUGIN_NAME}: ${PLUGIN_OBJECTS}
+	$(CC) $(CPPFLAGS) $(LDFLAGS) \
+	      -fPIC -shared -Wall \
+	      -I${DOVECOT_INCDIR} \
+	      -DHAVE_CONFIG_H \
+	      $^ -o $@
 
 ${HELPER_NAME}: ${HELPER_SOURCES}
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) \
@@ -78,7 +94,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	      $< -o $@
 
 %.1 : %.1.in
-	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
+	sed -e 's:DOVECOT_MODULEDIR:${DOVECOT_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -88,7 +104,7 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 %.7 : %.7.in
-	sed -e 's:DOVECOT_IMAP_MODULEDIR:${DOVECOT_IMAP_MODULEDIR}:g' \
+	sed -e 's:DOVECOT_MODULEDIR:${DOVECOT_MODULEDIR}:g' \
 	    -e  's:BINDIR:${BINDIR}:g' \
 	    -e  's:MAN1DIR:${MAN1DIR}:g' \
 	    -e  's:MAN7DIR:${MAN7DIR}:g' \
@@ -98,11 +114,17 @@ ${HELPER_NAME}: ${HELPER_SOURCES}
 	$< > $@
 
 
-install: install_plugin install_helper install_man
+install: install_plugins install_helper install_man
+
+install_plugins: install_settings_plugin install_plugin
+
+install_settings_plugin: ${SETTINGS_PLUGIN_NAME}
+	install -d ${DESTDIR}/${DOVECOT_SETTINGDIR}
+	install $< ${DESTDIR}/${DOVECOT_SETTINGDIR}
 
 install_plugin: ${PLUGIN_NAME}
-	install -d ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
-	install $< ${DESTDIR}/${DOVECOT_IMAP_MODULEDIR}
+	install -d ${DESTDIR}/${DOVECOT_MODULEDIR}
+	install $< ${DESTDIR}/${DOVECOT_MODULEDIR}
 
 install_helper: ${HELPER_NAME}
 	install -d ${DESTDIR}/${BINDIR}
@@ -120,7 +142,7 @@ install_man7: ${MAN7PAGES}
 
 
 clean:
-	$(RM) ${PLUGIN_NAME} ${HELPER_NAME} ${MAN1PAGES} ${MAN7PAGES}
+	$(RM) ${SETTINGS_PLUGIN_NAME} ${PLUGIN_NAME} ${HELPER_NAME} ${PLUGIN_OBJECTS} ${MAN1PAGES} ${MAN7PAGES}
 
 
 dist:

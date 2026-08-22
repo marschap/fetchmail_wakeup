@@ -1,3 +1,18 @@
+dovecot-fetchmail (2.4.0-0pm1) unstable; urgency=medium
+
+  * new upstream release 2.4.0
+
+  * debian/control: modernize
+  * debian/*{inst,rm}: update to support & prefer systemd
+  * debian/control: add systemd to Depends:
+  * debian/control: bump (Build-)Depends: to dovecot >= 1:2.4.0
+  * debian/docs: follow upstream's rename to README.md
+  * debian/dirs: add usr/lib/dovecot/modules/settings
+  * debian/manpages: add paths
+  * debian/install: extend
+
+ -- Peter Marschall <peter@adpm.de>  Sat, 22 Aug 2026 14:12:52 +0200
+
 dovecot-fetchmail (2.3.1-0pm3) unstable; urgency=medium
 
   * rebuild against dovecot 2.3.21

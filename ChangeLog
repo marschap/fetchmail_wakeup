@@ -1,3 +1,13 @@
+Release 2.4.0
+=============
+
+2026-08-02 Peter Marschall <peter@adpm.de>
+* Makefile: mark more targets as .PHONY
+* uppercase IMAP trigger commands
+
+2026-08-01 Peter Marschall <peter@adpm.de>
+* use standard naming convention for settings sub-module
+
 Release 2.4.0-rc1
 =================
 

@@ -210,6 +210,7 @@ Versions
 Tests
 -----
 
+- Version 2.4.0 tested with Dovecot 2.4.1 and 2.4.4
 - Version 2.3.1 tested with Dovecot 2.3.18
 - Previous versions tested with Dovecot 1.1.13, 1.1.16, various 1.2.x, 2.0.x, 2.1.x, 2.2.9 versions
 - Original version tested with Dovecot-1.0.3
